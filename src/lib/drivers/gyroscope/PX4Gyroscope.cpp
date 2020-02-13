@@ -67,6 +67,7 @@ PX4Gyroscope::PX4Gyroscope(uint32_t device_id, uint8_t priority, enum Rotation r
 	CDev(nullptr),
 	_sensor_pub{ORB_ID(sensor_gyro), priority},
 	_sensor_fifo_pub{ORB_ID(sensor_gyro_fifo), priority},
+	_sensor_fifo_full_pub{ORB_ID(sensor_gyro_fifo_full), priority},
 	_sensor_integrated_pub{ORB_ID(sensor_gyro_integrated), priority},
 	_sensor_status_pub{ORB_ID(sensor_gyro_status), priority},
 	_device_id{device_id},
@@ -125,6 +126,10 @@ void PX4Gyroscope::set_update_rate(uint16_t rate)
 
 void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float z)
 {
+	float x_raw = x;
+	float y_raw = y;
+	float z_raw = z;
+
 	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
 
@@ -140,6 +145,7 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 
 	// Apply range scale and the calibrating offset/scale
 	const Vector3f val_calibrated{((raw * _scale) - _calibration_offset)};
+	const Vector3f val_rot_scale_no_cal{(raw * _scale)};
 
 	// publish raw data immediately
 	{
@@ -154,6 +160,29 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_pub.publish(report);
+	}
+
+	{
+		sensor_gyro_fifo_full_s report{};
+
+		report.timestamp_sample = timestamp_sample;
+		report.device_id = _device_id;
+		report.temperature = _temperature;
+		report.rotation = _rotation;
+		report.scale = _scale;
+
+		report.x_raw = x_raw;
+		report.y_raw = y_raw;
+		report.z_raw = z_raw;
+
+		for(int i = 0; i < 2; i++){ //for x y and z
+			report.xyz_calibration_offset[i] = _calibration_offset(i);
+			report.xyz_rotated_and_scale_no_cal[i] = val_rot_scale_no_cal(i);
+			report.xyz_rotated_and_cal[i] = val_calibrated(i);
+		}
+		report.timestamp = hrt_absolute_time();
+
+		_sensor_fifo_full_pub.publish(report);
 	}
 
 	// Integrated values
@@ -194,16 +223,16 @@ void PX4Gyroscope::updateFIFO(const FIFOSample &sample)
 	const uint8_t N = sample.samples;
 	const float dt = sample.dt;
 
-	// publish raw data immediately
+	// average
+	float x = (float)sum(sample.x, N) / (float)N;
+	float y = (float)sum(sample.y, N) / (float)N;
+	float z = (float)sum(sample.z, N) / (float)N;
+
+	// Apply rotation (before scaling)
+	rotate_3f(_rotation, x, y, z);
+
+		// publish raw data immediately
 	{
-		// average
-		float x = (float)sum(sample.x, N) / (float)N;
-		float y = (float)sum(sample.y, N) / (float)N;
-		float z = (float)sum(sample.z, N) / (float)N;
-
-		// Apply rotation (before scaling)
-		rotate_3f(_rotation, x, y, z);
-
 		// Apply range scale and the calibration offset
 		const Vector3f val_calibrated{(Vector3f{x, y, z} * _scale) - _calibration_offset};
 
@@ -219,7 +248,6 @@ void PX4Gyroscope::updateFIFO(const FIFOSample &sample)
 
 		_sensor_pub.publish(report);
 	}
-
 
 	// clipping
 	unsigned clip_count_x = clipping(sample.x, _clip_limit, N);

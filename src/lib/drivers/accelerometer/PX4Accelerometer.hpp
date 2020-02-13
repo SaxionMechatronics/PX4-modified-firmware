@@ -45,6 +45,7 @@
 #include <uORB/topics/sensor_accel_fifo.h>
 #include <uORB/topics/sensor_accel_integrated.h>
 #include <uORB/topics/sensor_accel_status.h>
+#include <uORB/topics/sensor_accel_fifo_full.h>
 
 class PX4Accelerometer : public cdev::CDev
 {
@@ -91,6 +92,7 @@ private:
 	void UpdateVibrationMetrics(const matrix::Vector3f &delta_velocity);
 
 	uORB::PublicationQueuedMulti<sensor_accel_s>      _sensor_pub;
+	uORB::PublicationMulti<sensor_accel_fifo_full_s>	_sensor_fifo_full_pub;
 	uORB::PublicationMulti<sensor_accel_fifo_s>       _sensor_fifo_pub;
 	uORB::PublicationMulti<sensor_accel_integrated_s> _sensor_integrated_pub;
 	uORB::PublicationMulti<sensor_accel_status_s>     _sensor_status_pub;

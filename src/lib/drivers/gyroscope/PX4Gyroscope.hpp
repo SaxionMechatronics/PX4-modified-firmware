@@ -44,6 +44,7 @@
 #include <uORB/topics/sensor_gyro_fifo.h>
 #include <uORB/topics/sensor_gyro_integrated.h>
 #include <uORB/topics/sensor_gyro_status.h>
+#include <uORB/topics/sensor_gyro_fifo_full.h>
 
 class PX4Gyroscope : public cdev::CDev
 {
@@ -91,6 +92,7 @@ private:
 
 	uORB::PublicationQueuedMulti<sensor_gyro_s>      _sensor_pub;
 	uORB::PublicationMulti<sensor_gyro_fifo_s>       _sensor_fifo_pub;
+	uORB::PublicationMulti<sensor_gyro_fifo_full_s>  _sensor_fifo_full_pub;
 	uORB::PublicationMulti<sensor_gyro_integrated_s> _sensor_integrated_pub;
 	uORB::PublicationMulti<sensor_gyro_status_s>     _sensor_status_pub;
 
