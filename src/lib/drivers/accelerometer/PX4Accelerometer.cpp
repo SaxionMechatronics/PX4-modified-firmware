@@ -130,6 +130,11 @@ void PX4Accelerometer::set_update_rate(uint16_t rate)
 
 void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, float z)
 {
+
+	float x_raw = x;
+	float y_raw = y;
+	float z_raw = z;
+
 	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
 
@@ -170,9 +175,9 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.device_id = _device_id;
 		report.temperature = _temperature;
 
-		report.x_raw = x;
-		report.y_raw = y;
-		report.z_raw = z;
+		report.x_raw = x_raw;
+		report.y_raw = y_raw;
+		report.z_raw = z_raw;
 
 		report.scale = _scale;
 
