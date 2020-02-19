@@ -151,7 +151,7 @@ void PX4Magnetometer::update(hrt_abstime timestamp_sample, float x, float y, flo
 		report.y_raw = y_raw;
 		report.z_raw = z_raw;
 
-		for(int i = 0; i < 2; i++){ //for x y and z
+		for(int i = 0; i < 3; i++){ //for x y and z
 			report.xyz_calibration_offset[i] = _calibration_offset(i);
 			report.xyz_calibration_scale[i] = _calibration_scale(i);
 			report.sensitivity[i] = _sensitivity(i);

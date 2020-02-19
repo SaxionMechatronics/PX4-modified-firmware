@@ -176,7 +176,7 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 
 		report.scale = _scale;
 
-		for(int i = 0; i < 2; i++){ //for x y and z
+		for(int i = 0; i < 3; i++){ //for x y and z
 			report.xyz_calibration_offset[i] = _calibration_offset(i);
 		 	report.xyz_calibration_scale[i] = _calibration_scale(i);
 			report.xyz_scaled_no_cal[i] = val_scale_no_cal(i);
