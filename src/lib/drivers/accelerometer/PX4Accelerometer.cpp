@@ -179,13 +179,18 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.y_raw = y_raw;
 		report.z_raw = z_raw;
 
+		report.x = val_calibrated(0);
+		report.y = val_calibrated(1);
+		report.z = val_calibrated(2);
+
 		report.scale = _scale;
+		report.rotation = _rotation;
 
 		for(int i = 0; i < 3; i++){ //for x y and z
 			report.xyz_calibration_offset[i] = _calibration_offset(i);
 		 	report.xyz_calibration_scale[i] = _calibration_scale(i);
 			report.xyz_scaled_no_cal[i] = val_scale_no_cal(i);
-			report.xyz_scaled_and_cal[i] = val_calibrated(i);
+			// report.xyz_scaled_and_cal[i] = val_calibrated(i);
 		}
 		report.timestamp = hrt_absolute_time();
 

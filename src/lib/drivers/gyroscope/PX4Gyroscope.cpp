@@ -181,10 +181,14 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 		report.y_raw = y_raw;
 		report.z_raw = z_raw;
 
+		report.x = val_calibrated(0);
+		report.y = val_calibrated(1);
+		report.z = val_calibrated(2);
+
 		for(int i = 0; i < 3; i++){ //for x y and z
 			report.xyz_calibration_offset[i] = _calibration_offset(i);
 			report.xyz_rotated_and_scale_no_cal[i] = val_rot_scale_no_cal(i);
-			report.xyz_rotated_and_cal[i] = val_calibrated(i);
+			// report.xyz_rotated_and_cal[i] = val_calibrated(i);
 		}
 		report.timestamp = hrt_absolute_time();
 
