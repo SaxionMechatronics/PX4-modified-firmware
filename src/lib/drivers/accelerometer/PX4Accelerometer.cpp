@@ -93,10 +93,12 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 			// accel_calibration_misalign_s misalgn{}; TODO
 
 			memcpy(&cal, (accel_calibration_s *) arg, sizeof(cal));
-			_misalignment_scale = Vector3f{1.f, 1.f, 1.f};
+
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
 			_calibration_scale = Vector3f{cal.x_scale, cal.y_scale, cal.z_scale};
+			_misalignment_scale = Vector3f{cal.x_misalign, cal.y_misalign, cal.z_misalign};
+
 		}
 
 		return PX4_OK;
@@ -165,6 +167,7 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.x = val_calibrated(0);
 		report.y = val_calibrated(1);
 		report.z = val_calibrated(2);
+
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_pub.publish(report);
@@ -185,6 +188,10 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.x = val_calibrated(0);
 		report.y = val_calibrated(1);
 		report.z = val_calibrated(2);
+
+		report.misalgnx = _misalignment_scale(0);
+		report.misalgny = _misalignment_scale(1);
+		report.misalgnz = _misalignment_scale(2);
 
 		report.scale = _scale;
 		report.rotation = _rotation;

@@ -20,5 +20,9 @@ float32 x                 # acceleration in the NED X board axis in m/s^2
 float32 y                 # acceleration in the NED Y board axis in m/s^2
 float32 z                 # acceleration in the NED Z board axis in m/s^2
 
+float32 misalgnx
+float32 misalgny
+float32 misalgnz
+
 float32[3] xyz_scaled_no_cal                   # scaled uncalibrated values of X
 # float32[3] xyz_scaled_and_cal                # acceleration in the NED X board axis in m/s/s

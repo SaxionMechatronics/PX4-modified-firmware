@@ -39,6 +39,7 @@
 #include <lib/conversion/rotation.h>
 #include <lib/drivers/device/integrator.h>
 #include <lib/ecl/geo/geo.h>
+#include <parameters/param.h>
 #include <uORB/PublicationMulti.hpp>
 #include <uORB/PublicationQueuedMulti.hpp>
 #include <uORB/topics/sensor_accel.h>

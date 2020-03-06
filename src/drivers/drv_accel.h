@@ -58,6 +58,9 @@ struct accel_calibration_s {
 	float	y_scale;
 	float	z_offset;
 	float	z_scale;
+	float x_misalign;
+	float y_misalign;
+	float z_misalign;
 };
 /*
  * ioctl() definitions
@@ -65,11 +68,6 @@ struct accel_calibration_s {
  * Accelerometer drivers also implement the generic sensor driver
  * interfaces from drv_sensor.h
  */
- struct accel_calibration_misalign_s {
- 	float	x_scale;
- 	float	y_scale;
- 	float	z_scale;
- };
  /*
   * ioctl() definitions
   *

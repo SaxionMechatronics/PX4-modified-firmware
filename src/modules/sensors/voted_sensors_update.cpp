@@ -298,6 +298,15 @@ void VotedSensorsUpdate::parametersUpdate()
 				(void)sprintf(str, "CAL_ACC%u_ZSCALE", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.z_scale));
 
+				(void)sprintf(str, "CAL_ACC0_ALGN_X");
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.x_misalign));
+
+				(void)sprintf(str, "CAL_ACC0_ALGN_Y");
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.y_misalign));
+
+				(void)sprintf(str, "CAL_ACC0_ALGN_Z");
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.z_misalign));
+
 				if (failed) {
 					PX4_ERR(CAL_ERROR_APPLY_CAL_MSG, "accel", i);
 
