@@ -90,7 +90,10 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 	case ACCELIOCSSCALE: {
 			// Copy offsets and scale factors in
 			accel_calibration_s cal{};
+			// accel_calibration_misalign_s misalgn{}; TODO
+
 			memcpy(&cal, (accel_calibration_s *) arg, sizeof(cal));
+			_misalignment_scale = Vector3f{1.f, 1.f, 1.f};
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
 			_calibration_scale = Vector3f{cal.x_scale, cal.y_scale, cal.z_scale};
@@ -149,7 +152,7 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 	}
 
 	// Apply range scale and the calibrating offset/scale
-	const Vector3f val_calibrated{(((raw * _scale) - _calibration_offset).emult(_calibration_scale))};
+	const Vector3f val_calibrated{((((raw * _scale) - _calibration_offset).emult(_calibration_scale))).emult(_misalignment_scale)};
 	const Vector3f val_scale_no_cal{((raw * _scale))};
 
 	// publish raw data immediately

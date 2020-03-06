@@ -192,6 +192,11 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 	accel_scale.z_offset = 0.0f;
 	accel_scale.z_scale = 1.0f;
 
+	struct accel_calibration_misalign_s accel_misalign;
+	accel_misalign.x_scale = 0.9f;	//DOCALIBRATION STUFF
+	accel_misalign.y_scale = 0.9f;
+	accel_misalign.z_scale = 0.9f;
+
 	int res = PX4_OK;
 
 	char str[30];
@@ -399,6 +404,8 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 			accel_scale.z_scale = 1.f;
 		}
 
+
+
 		// save the driver level calibration data
 		(void)sprintf(str, "CAL_ACC%u_XOFF", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.x_offset)));
@@ -406,12 +413,21 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.y_offset)));
 		(void)sprintf(str, "CAL_ACC%u_ZOFF", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.z_offset)));
+
 		(void)sprintf(str, "CAL_ACC%u_XSCALE", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.x_scale)));
 		(void)sprintf(str, "CAL_ACC%u_YSCALE", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.y_scale)));
 		(void)sprintf(str, "CAL_ACC%u_ZSCALE", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.z_scale)));
+
+		(void)sprintf(str, "CAL_ACC0_ALGN_X");
+		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_misalign.x_scale)));
+		(void)sprintf(str, "CAL_ACC0_ALGN_Y");
+		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_misalign.y_scale)));
+		(void)sprintf(str, "CAL_ACC0_ALGN_Z");
+		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_misalign.z_scale)));
+
 		(void)sprintf(str, "CAL_ACC%u_ID", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(device_id[uorb_index])));
 

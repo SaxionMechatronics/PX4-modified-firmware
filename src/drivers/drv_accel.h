@@ -65,6 +65,17 @@ struct accel_calibration_s {
  * Accelerometer drivers also implement the generic sensor driver
  * interfaces from drv_sensor.h
  */
+ struct accel_calibration_misalign_s {
+ 	float	x_scale;
+ 	float	y_scale;
+ 	float	z_scale;
+ };
+ /*
+  * ioctl() definitions
+  *
+  * Accelerometer drivers also implement the generic sensor driver
+  * interfaces from drv_sensor.h
+  */
 
 #define _ACCELIOCBASE		(0x2100)
 #define _ACCELIOC(_n)		(_PX4_IOC(_ACCELIOCBASE, _n))
