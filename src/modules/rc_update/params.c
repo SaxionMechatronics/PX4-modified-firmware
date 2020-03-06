@@ -2293,3 +2293,44 @@ PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_Y, 1.0f);
 * @group Sensors
 */
 PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_Z, 1.0f);
+
+/**
+* MISALIGNMENT X ACCELEROMETER 0 ]
+*
+* misalignment on the x axis of accelerometer 0
+*
+* @min 0
+* @max 10
+* @unit n.a
+* @reboot_required true
+* @group Sensors
+*/
+PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_X, 1.0f);
+
+
+/**
+* MISALIGNMENT X ACCELEROMETER 0 ]
+*
+* misalignment on the x axis of accelerometer 0
+*
+* @min 0
+* @max 10
+* @unit n.a
+* @reboot_required true
+* @group Sensors
+*/
+PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_Y, 1.0f);
+
+
+/**
+* MISALIGNMENT X ACCELEROMETER 0 ]
+*
+* misalignment on the x axis of accelerometer 0
+*
+* @min 0
+* @max 10
+* @unit n.a
+* @reboot_required true
+* @group Sensors
+*/
+PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_Z, 1.0f);

@@ -264,6 +264,27 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 			PX4_ERR("unable to reset %s", str);
 		}
 
+		(void)sprintf(str, "CAL_ACC%u_ALGN_X", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.x_misalign);
+
+		if (res != PX4_OK) {
+			PX4_ERR("unable to reset %s", str);
+		}
+
+		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.y_misalign);
+
+		if (res != PX4_OK) {
+			PX4_ERR("unable to reset %s", str);
+		}
+
+		(void)sprintf(str, "CAL_ACC%u_ALGN_Z", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.z_misalign);
+
+		if (res != PX4_OK) {
+			PX4_ERR("unable to reset %s", str);
+		}
+
 		param_notify_changes();
 #endif
 	}
@@ -421,11 +442,11 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		(void)sprintf(str, "CAL_ACC%u_ZSCALE", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.z_scale)));
 
-		(void)sprintf(str, "CAL_ACC0_ALGN_X");
+		(void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.x_misalign)));
-		(void)sprintf(str, "CAL_ACC0_ALGN_Y");
+		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.y_misalign)));
-		(void)sprintf(str, "CAL_ACC0_ALGN_Z");
+		(void)sprintf(str, "CAL_ACC%u_ALGN_Z", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.z_misalign)));
 
 		(void)sprintf(str, "CAL_ACC%u_ID", uorb_index);
