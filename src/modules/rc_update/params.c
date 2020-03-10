@@ -2270,7 +2270,7 @@ PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_X, 1.0f);
 /**
 * MISALIGNMENT X ACCELEROMETER 0 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the Y axis of accelerometer 0
 *
 * @min 0
 * @max 10
@@ -2282,9 +2282,9 @@ PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_Y, 1.0f);
 
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT Z ACCELEROMETER 0 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the z axis of accelerometer 0
 *
 * @min 0
 * @max 10
@@ -2295,9 +2295,9 @@ PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_Y, 1.0f);
 PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_Z, 1.0f);
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT X ACCELEROMETER 1 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the x axis of accelerometer 1
 *
 * @min 0
 * @max 10
@@ -2309,9 +2309,9 @@ PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_X, 1.0f);
 
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT Y ACCELEROMETER 1 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the z axis of accelerometer 1
 *
 * @min 0
 * @max 10
@@ -2323,9 +2323,9 @@ PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_Y, 1.0f);
 
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT Y ACCELEROMETER 1 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the z axis of accelerometer 1
 *
 * @min 0
 * @max 10
@@ -2336,9 +2336,9 @@ PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_Y, 1.0f);
 PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_Z, 1.0f);
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT X GYRO 0 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the x axis of gyroscope 0
 *
 * @min 0
 * @max 10
@@ -2350,9 +2350,9 @@ PARAM_DEFINE_FLOAT(CAL_GYR0_ALGN_X, 1.0f);
 
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT Y GYRO 0 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the y axis of gyroscope 0
 *
 * @min 0
 * @max 10
@@ -2364,9 +2364,9 @@ PARAM_DEFINE_FLOAT(CAL_GYR0_ALGN_Y, 1.0f);
 
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT Z GYRO 0 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the z axis of gyroscope 0
 *
 * @min 0
 * @max 10
@@ -2377,9 +2377,9 @@ PARAM_DEFINE_FLOAT(CAL_GYR0_ALGN_Y, 1.0f);
 PARAM_DEFINE_FLOAT(CAL_GYR0_ALGN_Z, 1.0f);
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT X GYRO 1 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the x axis of gyroscope 1
 *
 * @min 0
 * @max 10
@@ -2391,9 +2391,9 @@ PARAM_DEFINE_FLOAT(CAL_GYR1_ALGN_X, 1.0f);
 
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT Y GYRO 1 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the y axis of gyroscope 1
 *
 * @min 0
 * @max 10
@@ -2405,9 +2405,9 @@ PARAM_DEFINE_FLOAT(CAL_GYR1_ALGN_Y, 1.0f);
 
 
 /**
-* MISALIGNMENT X ACCELEROMETER 0 ]
+* MISALIGNMENT Z GYRO 1 ]
 *
-* misalignment on the x axis of accelerometer 0
+* misalignment on the z axis of gyroscope 1
 *
 * @min 0
 * @max 10
