@@ -55,6 +55,9 @@ struct gyro_calibration_s {
 	float	x_offset;
 	float	y_offset;
 	float	z_offset;
+	float x_misalign;
+	float y_misalign;
+	float z_misalign;
 };
 
 /*

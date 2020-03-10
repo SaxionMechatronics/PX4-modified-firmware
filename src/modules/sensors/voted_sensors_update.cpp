@@ -193,6 +193,15 @@ void VotedSensorsUpdate::parametersUpdate()
 				(void)sprintf(str, "CAL_GYRO%u_ZOFF", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.z_offset));
 
+				(void)sprintf(str, "CAL_GYR%u_XOFF", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.x_misalign));
+
+				(void)sprintf(str, "CAL_GYR%u_YOFF", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.y_misalign));
+
+				(void)sprintf(str, "CAL_GYR%u_ZOFF", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.z_misalign));
+
 				if (failed) {
 					PX4_ERR(CAL_ERROR_APPLY_CAL_MSG, "gyro", i);
 

@@ -96,6 +96,7 @@ int PX4Gyroscope::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 			memcpy(&cal, (gyro_calibration_s *) arg, sizeof(cal));
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
+			_misalignment_scale = Vector3f{cal.x_misalign, cal.y_misalign, cal.z_misalign};
 		}
 
 		return PX4_OK;
@@ -150,7 +151,7 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 	}
 
 	// Apply range scale and the calibrating offset/scale
-	const Vector3f val_calibrated{((raw * _scale) - _calibration_offset)};
+	const Vector3f val_calibrated{((raw * _scale) - _calibration_offset).emult(_misalignment_scale)};
 	const Vector3f val_rot_scale_no_cal{(raw * _scale)};
 
 	// publish raw data immediately
@@ -160,9 +161,11 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 		report.timestamp_sample = timestamp_sample;
 		report.device_id = _device_id;
 		report.temperature = _temperature;
+
 		report.x = val_calibrated(0);
 		report.y = val_calibrated(1);
 		report.z = val_calibrated(2);
+
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_pub.publish(report);
@@ -176,6 +179,10 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 		report.temperature = _temperature;
 		report.rotation = _rotation;
 		report.scale = _scale;
+
+		report.misalgnx = _misalignment_scale(0);
+		report.misalgny = _misalignment_scale(1);
+		report.misalgnz = _misalignment_scale(2);
 
 		report.x_raw = x_raw;
 		report.y_raw = y_raw;
@@ -244,7 +251,7 @@ void PX4Gyroscope::updateFIFO(const FIFOSample &sample)
 		// publish raw data immediately
 	{
 		// Apply range scale and the calibration offset
-		const Vector3f val_calibrated{(Vector3f{x, y, z} * _scale) - _calibration_offset};
+		const Vector3f val_calibrated{((Vector3f{x, y, z} * _scale) - _calibration_offset).emult(_misalignment_scale)};
 
 		sensor_gyro_s report;
 

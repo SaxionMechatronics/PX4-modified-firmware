@@ -12,6 +12,10 @@ int16 x_raw                       # raw register values of X
 int16 y_raw                       # raw register values of Y
 int16 z_raw                       # raw register values of Z
 
+float32 misalgnx                  # misalignment value of x
+float32 misalgny                  # misalignment value of y
+float32 misalgnz                  # misalignment zalue of z
+
 float32 x                 # angular velocity in the NED X board axis in rad/s
 float32 y                 # angular velocity in the NED Y board axis in rad/s
 float32 z                 # angular velocity in the NED Z board axis in rad/s

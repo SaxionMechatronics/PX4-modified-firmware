@@ -217,6 +217,10 @@ int do_gyro_calibration(orb_advert_t *mavlink_log_pub)
 	worker_data.mavlink_log_pub = mavlink_log_pub;
 
 	gyro_calibration_s gyro_scale_zero{};
+	gyro_scale_zero.x_misalign = 0.9f; //TODO calibration stuff
+	gyro_scale_zero.y_misalign = 0.91f;
+	gyro_scale_zero.z_misalign = 0.92f;
+
 	int device_prio_max = 0;
 	int32_t device_id_primary = 0;
 
@@ -271,6 +275,24 @@ int do_gyro_calibration(orb_advert_t *mavlink_log_pub)
 
 		(void)sprintf(str, "CAL_GYRO%u_ZOFF", s);
 		res = param_set_no_notification(param_find(str), &gyro_scale_zero.z_offset);
+
+
+		(void)sprintf(str, "CAL_GYR%u_ALGN_X", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.x_misalign);
+
+		if (res != PX4_OK) {
+			PX4_ERR("unable to reset %s", str);
+		}
+
+		(void)sprintf(str, "CAL_GYR%u_ALGN_Y", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.y_misalign);
+
+		if (res != PX4_OK) {
+			PX4_ERR("unable to reset %s", str);
+		}
+
+		(void)sprintf(str, "CAL_GYR%u_ALGN_Z", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.z_misalign);
 
 		if (res != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
