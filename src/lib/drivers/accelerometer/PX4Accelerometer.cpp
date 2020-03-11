@@ -91,8 +91,6 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 	case ACCELIOCSSCALE: {
 			// Copy offsets and scale factors in
 			accel_calibration_s cal{};
-			// accel_calibration_misalign_s misalgn{}; TODO
-
 			memcpy(&cal, (accel_calibration_s *) arg, sizeof(cal));
 
 
@@ -167,7 +165,6 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 	SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
 	const Vector3f new_val_calibrated{inv(D) * ((raw * _scale) - _calibration_offset)};
 
-
 	// Apply range scale and the calibrating offset/scale
 	const Vector3f val_calibrated{((((raw * _scale) - _calibration_offset).emult(_calibration_scale))).emult(_misalignment_scale)};
 	const Vector3f val_scale_no_cal{((raw * _scale))};
@@ -207,8 +204,6 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.misalgnx = _misalignment_scale(0);
 		report.misalgny = _misalignment_scale(1);
 		report.misalgnz = _misalignment_scale(2);
-
-		report.misalgnx = D(0,0);
 
 		report.scale = _scale;
 		report.rotation = _rotation;

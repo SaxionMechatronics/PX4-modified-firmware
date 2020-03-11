@@ -184,6 +184,9 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 
 	calibration_log_info(mavlink_log_pub, CAL_QGC_STARTED_MSG, sensor_name);
 
+
+	char str[30];
+
 	struct accel_calibration_s accel_scale;
 	accel_scale.x_offset = 0.0f;
 	accel_scale.x_scale = 1.0f;
@@ -196,10 +199,17 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 	accel_scale.z_misalign = 0.9f;
 
 
+	// (void)sprintf(str, "CAL_ACC0_ALGN_X");
+	// accel_scale.x_misalign = param_find("CAL_ACC0_ALGN_X");
+	//
+	// (void)sprintf(str, "CAL_ACC0_ALGN_Y");
+	// param_get(param_find(str), &accel_scale.y_misalign);
+	//
+	// (void)sprintf(str, "CAL_ACC0_ALGN_Z");
+	// param_get(param_find(str), &accel_scale.z_misalign);
 
 	int res = PX4_OK;
 
-	char str[30];
 
 	/* reset all sensors */
 	for (unsigned s = 0; s < max_accel_sens; s++) {
@@ -215,6 +225,7 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		device_id[s] = px4_ioctl(fd, DEVIOCGDEVICEID, 0);
 
 		res = px4_ioctl(fd, ACCELIOCSSCALE, (long unsigned int)&accel_scale);
+
 		px4_close(fd);
 
 		if (res != PX4_OK) {
@@ -342,6 +353,20 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		accel_scale.y_scale = accel_T_rotated(1, 1);
 		accel_scale.z_offset = accel_offs_rotated(2);
 		accel_scale.z_scale = accel_T_rotated(2, 2);
+
+
+		(void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
+		param_get(param_find(str), &accel_scale.x_misalign);
+
+		// printf("Accel_scale = %f \n", accel_scale.x_misalign);
+		calibration_log_info(mavlink_log_pub, "UORB index %f", (double)accel_scale.x_misalign);
+
+		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
+		param_get(param_find(str), &accel_scale.y_misalign);
+
+		(void)sprintf(str, "CAL_ACC%u_ALGN_Z", uorb_index);
+		param_get(param_find(str), &accel_scale.z_misalign);
+
 
 		bool failed = false;
 
