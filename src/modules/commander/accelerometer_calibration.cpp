@@ -197,17 +197,6 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 	accel_scale.x_misalign = 0.9f;	//DOCALIBRATION STUFF
 	accel_scale.y_misalign = 0.9f;
 	accel_scale.z_misalign = 0.9f;
-
-
-	// (void)sprintf(str, "CAL_ACC0_ALGN_X");
-	// accel_scale.x_misalign = param_find("CAL_ACC0_ALGN_X");
-	//
-	// (void)sprintf(str, "CAL_ACC0_ALGN_Y");
-	// param_get(param_find(str), &accel_scale.y_misalign);
-	//
-	// (void)sprintf(str, "CAL_ACC0_ALGN_Z");
-	// param_get(param_find(str), &accel_scale.z_misalign);
-
 	int res = PX4_OK;
 
 
@@ -357,9 +346,6 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 
 		(void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
 		param_get(param_find(str), &accel_scale.x_misalign);
-
-		// printf("Accel_scale = %f \n", accel_scale.x_misalign);
-		calibration_log_info(mavlink_log_pub, "UORB index %f", (double)accel_scale.x_misalign);
 
 		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
 		param_get(param_find(str), &accel_scale.y_misalign);
