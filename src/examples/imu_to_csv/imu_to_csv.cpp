@@ -66,14 +66,20 @@ const char* getfield(char* line, int num)
 
 int imu_to_csv_main(int argc, char *argv[])
 {
-	 FILE *stream = fopen("imu_params.csv", "r");
+	 FILE *stream = fopen("imu_params.csv","r");
 
 	 char line[1024];
 
-	 while (fgets(line, 1024, stream)){
+    PX4_INFO("IM DOING SOMETHING!!!");
+	  while (fgets(line, 1024, stream)){
+      PX4_INFO("IM DOING SOMETHING!!!");
 			char* tmp = strdup(line);
-			printf("Field 1 would be %s\n", getfield(tmp, 1));
+      PX4_INFO("Field 1 would be %s\n", getfield(tmp, 0));
 			free(tmp);
 	}
-	 return 0;
+
+  // int hello = 10;
+  // param_set(param_find("RV_YAW_P"), &hello);
+
+  return 0;
 }
