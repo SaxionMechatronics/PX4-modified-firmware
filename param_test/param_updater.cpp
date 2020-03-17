@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 #include <iterator>
@@ -7,38 +8,39 @@
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 
+using namespace std;
 /*
  * A class to read data from a csv file.
  */
 class CSVReader
 {
-	std::string fileName;
-	std::string delimeter;
+	string fileName;
+	string delimeter;
 
 public:
-	CSVReader(std::string filename, std::string delm = "	") :
+	CSVReader(string filename, string delm = "	") :
 			fileName(filename), delimeter(delm)
 	{ }
 
 	// Function to fetch data from a CSV File
-	std::vector<std::vector<std::string> > getData();
+	vector<vector<string> > getData();
 };
 
 /*
 * Parses through csv file line by line and returns the data
 * in vector of vector of strings.
 */
-std::vector<std::vector<std::string> > CSVReader::getData()
+vector<vector<string> > CSVReader::getData()
 {
-	std::ifstream file(fileName);
+	ifstream file(fileName);
 
-	std::vector<std::vector<std::string> > dataList;
+	vector<vector<string> > dataList;
 
-	std::string line = "";
+	string line = "";
 	// Iterate through each line and split the content using delimeter
 	while (getline(file, line))
 	{
-		std::vector<std::string> vec;
+		vector<string> vec;
 		boost::algorithm::split(vec, line, boost::is_any_of(delimeter));
 		dataList.push_back(vec);
 	}
@@ -50,26 +52,36 @@ std::vector<std::vector<std::string> > CSVReader::getData()
 int main()
 {
   int sensor_nr;
+  int rownr;
   //sensor selection
-  std::cout << "Type the sensor number: ";
-  std::cin >> sensor_nr;
+  cout << "Type the sensor number: ";
+  cin >> sensor_nr;
 
 	// Creating an object of CSVWriter
 	CSVReader reader("pixhawk4.params");
+  ofstream output_file("pixhawk4_updated.params");
 	// Get the data from CSV File
-	std::vector<std::vector<std::string> > dataList = reader.getData();
+	vector<vector<string> > dataList = reader.getData();
 
 	// Print the content of row by row on screen
-	for(std::vector<std::string> vec : dataList)
+	for(vector<string> vec : dataList)
 	{
-      for(std::string data : vec)
+      for(string data : vec)
       {
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "CAL_ACC" << sensor_nr << "_ALGN_X";
+
         if(data.compare(oss.str()) == 0){
-              std::cout<<data << std::endl;
+              cout << data << " " << vec[3] << endl;
+
+              for(int i = 0; i < (vec.size() - 1); i++){
+                output_file << vec[i] << "	";
+              }
+              output_file << vec[vec.size() - 1] << endl; //skip space for last element
+
         }
       }
+      rownr++;
 	}
 	return 0;
 
