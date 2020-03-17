@@ -47,9 +47,11 @@ extern "C" __EXPORT int imu_to_csv_main(int argc, char *argv[]);
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 
 using namespace std;
+static const char *csv_file = PX4_ROOTFSDIR"/fs/microsd/imu_params.csv";
 
 const char* getfield(char* line, int num)
 {
@@ -66,7 +68,12 @@ const char* getfield(char* line, int num)
 
 int imu_to_csv_main(int argc, char *argv[])
 {
-	 FILE *stream = fopen("imu_params.csv","r");
+	 FILE *stream = fopen(csv_file,"r");
+   PX4_INFO("Still alive");
+   char cwd[1024];
+  if (getcwd(cwd, sizeof(cwd)) != NULL) {
+      PX4_INFO("Current working dir: %s\n", cwd);
+  }
 
 	 char line[1024];
 
@@ -77,9 +84,6 @@ int imu_to_csv_main(int argc, char *argv[])
       PX4_INFO("Field 1 would be %s\n", getfield(tmp, 0));
 			free(tmp);
 	}
-
-  // int hello = 10;
-  // param_set(param_find("RV_YAW_P"), &hello);
 
   return 0;
 }
