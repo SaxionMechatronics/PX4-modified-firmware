@@ -49,6 +49,8 @@ vector<vector<string> > CSVReader::getData()
 
 	return dataList;
 }
+
+
 int main()
 {
   int sensor_nr;
@@ -57,32 +59,40 @@ int main()
   cout << "Type the sensor number: ";
   cin >> sensor_nr;
 
+  //actual csv file with params from matlab
+  CSVReader csv_reader("henk_csv.csv", ",");
+  vector<vector<string> > csv_dataList = csv_reader.getData();
+
 	// Creating an object of CSVWriter
-	CSVReader reader("pixhawk4.params");
+	CSVReader param_reader("pixhawk4.params");
+
+  //output file
   ofstream output_file("pixhawk4_updated.params");
 	// Get the data from CSV File
-	vector<vector<string> > dataList = reader.getData();
+	vector<vector<string> > param_dataList = param_reader.getData();
 
-	// Print the content of row by row on screen
-	for(vector<string> vec : dataList)
+	for(vector<string> vec : param_dataList)
 	{
-      for(string data : vec)
-      {
-        ostringstream oss;
-        oss << "CAL_ACC" << sensor_nr << "_ALGN_X";
-
-        if(data.compare(oss.str()) == 0){
-              cout << data << " " << vec[3] << endl;
-
-              for(int i = 0; i < (vec.size() - 1); i++){
-                output_file << vec[i] << "	";
-              }
-              output_file << vec[vec.size() - 1] << endl; //skip space for last element
-
-        }
-      }
-      rownr++;
-	}
-	return 0;
-
+		ostringstream oss;
+		oss << "CAL_ACC" << sensor_nr << "_XSCALE";
+		if(vec[2].compare(oss.str()) == 0) //value is X_SCALE
+		{
+			for(int i = 0; i < (vec.size() - 1); i++)
+			{
+				if(i != 3){
+					output_file << vec[i] << "	" ;
+				}else{
+					output_file << csv_dataList[8][0] << "	";
+				}
+			}
+			output_file << vec[vec.size() - 1] << endl; //skip space for last element
+		}else{
+			for(int i = 0; i < (vec.size() - 1); i++)
+			{
+				output_file << vec[i] << "	" ;
+			}
+			output_file << vec[vec.size() - 1] << endl; //skip space for last element
+		}
+ }
+ 	return 0;
 }
