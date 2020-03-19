@@ -29,7 +29,7 @@ public:
 /*
 * Reads csv file from henk with the parameters coming from matlab
 */
-vector<float > read_matlab_csv()
+vector<float> read_matlab_csv()
 {
   CSVReader csv_reader("henk_csv.csv", ",");
 	vector<vector<string> > csv_dataList = csv_reader.getData();
@@ -43,12 +43,25 @@ vector<float > read_matlab_csv()
 			}
 		}
 	}
-
-	for(int i = 0; i < param_data_array.size(); i++){
-		cout << param_data_array[i] << endl;
-	}
-
 	return param_data_array;
+}
+
+//choose which parameters to modify
+vector<string> parameter_selection(int sensor_nr)
+{
+	vector<string> selected_params;
+	ostringstream oss;
+
+	for(int i = 0; i < 3; i++){
+		for(int j = 0; j < 3; j++){
+			oss.str("");
+			oss.clear();
+
+			oss << "CAL_ACC" << sensor_nr << "_D" << i << j;
+			selected_params.push_back(oss.str());
+		}
+	}
+	return selected_params;
 }
 
 /*
@@ -84,41 +97,29 @@ int main()
   cout << "Type the sensor number: ";
   cin >> sensor_nr;
 
-  // //actual csv file with params from matlab
+  //actual csv file with params from matlab
 	vector<float> param_data_array = read_matlab_csv();
 
-
-	// Creating an object of CSVWriter
-	CSVReader param_reader("pixhawk4.params", "	");
-	vector<vector<string> > param_dataList = param_reader.getData();
+	//define the parameters which need to be set
+	vector<string> selected_params = parameter_selection(sensor_nr);
 
   //output file
   ofstream output_file("pixhawk4_updated.params");
-	// Get the data from CSV File
 
+	output_file <<	"# Onboard parameters for Vehicle 1/n" << endl;
+	output_file <<	"#" << endl;
+	output_file <<	"# Stack: PX4 Pro/n" << endl;
+	output_file <<	"# Vehicle: Multi-Rotor/n" << endl;
+	output_file <<	"# Version: 1.11.0 dev" << endl;
+	output_file <<	"# Git Revision: a2ba0b9982000000" << endl;
+	output_file <<	"#" << endl;
+	output_file <<	"# Vehicle-Id Component-Id Name Value Type" << endl;
 
-	for(vector<string> vec : param_dataList)
-	{
+	for(int i = 0; i < selected_params.size(); i++){
 		ostringstream oss;
-		oss << "CAL_ACC" << sensor_nr << "_XSCALE";
-		// if(vec[2].compare(oss.str()) == 0) //value is X_SCALE
-		// {
-		// 	for(int i = 0; i < (vec.size() - 1); i++)
-		// 	{
-		// 		if(i != 3){
-		// 			output_file << vec[i] << "	" ;
-		// 		}else{
-		// 			// output_file << csv_dataList[8][0] << "	";
-		// 		}
-		// 	}
-			output_file << vec[vec.size() - 1] << endl; //skip space for last element
-		{
-			for(int i = 0; i < (vec.size() - 1); i++)
-			{
-				output_file << vec[i] << "	" ;
-			}
-			output_file << vec[vec.size() - 1] << endl; //skip space for last element
-		}
- }
+		oss << "1	1	"<< selected_params[i] << "	" << param_data_array[i] << "	9" << endl;
+		output_file << oss.str();
+	}
+
  	return 0;
 }
