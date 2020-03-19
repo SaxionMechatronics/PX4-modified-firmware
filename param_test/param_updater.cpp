@@ -29,36 +29,62 @@ public:
 /*
 * Reads csv file from henk with the parameters coming from matlab
 */
-vector<float> read_matlab_csv()
+vector<vector<float>> read_matlab_csv(int *nr_of_accelerometers_p)
 {
-  CSVReader csv_reader("henk_csv.csv", ",");
+  CSVReader csv_reader("henk_csv_multiple_senors.csv", ",");
 	vector<vector<string> > csv_dataList = csv_reader.getData();
-	vector<float> param_data_array;
-	int rownr = 0;
+	vector<vector<float> > param_data_array;
+	int accel_on_row  = 0;
+	int nr_of_accelerometers;
 
 	for(int i = 0; i < csv_dataList.size(); i++){
 		if(csv_dataList[i][0].compare("Accelerometer calibration parameters:") == 0){
-			for(int j = 0; j < csv_dataList[i + 2].size(); j++){
-				param_data_array.push_back(stof(csv_dataList[i + 2][j]));
+			//Found on row in the csv file
+			accel_on_row = i;
+		}
+
+		if(csv_dataList[i][0].compare("Gyroscope calibration parameters:") == 0){
+			//rownr of accelerometer - rownr gyro -2 definition rows = nr of sensors
+			nr_of_accelerometers = (i - accel_on_row - 2);
+		}
+	}
+
+	*nr_of_accelerometers_p = nr_of_accelerometers;
+
+	for(int i = 0; i < (csv_dataList.size() - 2); i++){
+		cout << i << endl;
+		if(csv_dataList[i][0].compare("Accelerometer calibration parameters:") == 0){
+			cout<<"HIT!" << endl;
+			for(int j = 0; j < nr_of_accelerometers; j++){
+				cout << "I: " << i << endl;
+				cout << "J: " << j << endl;
+				for(int k = 0; k < csv_dataList[i + 2].size(); k++){
+					cout << "K: " << k << "endl";
+					param_data_array[0].push_back(stof(csv_dataList[i + 2][k]));
+				}
 			}
 		}
 	}
+
+	cout << "leaving.." << endl;
 	return param_data_array;
 }
 
 //choose which parameters to modify
-vector<string> parameter_selection(int sensor_nr)
+vector<vector<string> > parameter_selection(int nr_of_sensors)
 {
-	vector<string> selected_params;
+	vector<vector<string> > selected_params;
 	ostringstream oss;
+	//fill in CALL_ACC<sensor_nr>_D<row><col>
+	for(int x = 0; x < nr_of_sensors; x++){
+		for(int i = 0; i < 3; i++){
+			for(int j = 0; j < 3; j++){
+				oss.str("");
+				oss.clear();
 
-	for(int i = 0; i < 3; i++){
-		for(int j = 0; j < 3; j++){
-			oss.str("");
-			oss.clear();
-
-			oss << "CAL_ACC" << sensor_nr << "_D" << i << j;
-			selected_params.push_back(oss.str());
+				oss << "CAL_ACC" << x << "_D" << i << j;
+				selected_params[x].push_back(oss.str());
+			}
 		}
 	}
 	return selected_params;
@@ -91,17 +117,15 @@ vector<vector<string> > CSVReader::getData()
 
 int main()
 {
-  int sensor_nr;
-  int rownr;
-  //sensor selection
-  cout << "Type the sensor number: ";
-  cin >> sensor_nr;
+  int nr_of_accelerometers = 0;
+
 
   //actual csv file with params from matlab
-	vector<float> param_data_array = read_matlab_csv();
+	vector<vector<float>> param_data_array = read_matlab_csv(&nr_of_accelerometers);
+	cout << "Number of accelerometers : " << nr_of_accelerometers << endl;
 
 	//define the parameters which need to be set
-	vector<string> selected_params = parameter_selection(sensor_nr);
+	vector<vector<string>> selected_params = parameter_selection(nr_of_accelerometers);
 
   //output file
   ofstream output_file("pixhawk4_updated.params");
@@ -115,10 +139,12 @@ int main()
 	output_file <<	"#" << endl;
 	output_file <<	"# Vehicle-Id Component-Id Name Value Type" << endl;
 
-	for(int i = 0; i < selected_params.size(); i++){
-		ostringstream oss;
-		oss << "1	1	"<< selected_params[i] << "	" << param_data_array[i] << "	9" << endl;
-		output_file << oss.str();
+	for(int x = 0; x < nr_of_accelerometers; x++){
+		for(int i = 0; i < selected_params.size(); i++){
+			ostringstream oss;
+			oss << "1	1	"<< selected_params[x][i] << "	" << param_data_array[x][i] << "	9" << endl;
+			output_file << oss.str();
+		}
 	}
 
  	return 0;
