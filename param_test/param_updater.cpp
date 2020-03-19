@@ -8,7 +8,12 @@
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 
+#define VERBOSE 0
+
 using namespace std;
+
+
+
 /*
  * A class to read data from a csv file.
  */
@@ -51,22 +56,26 @@ vector<vector<float>> read_matlab_csv(int *nr_of_accelerometers_p)
 
 	*nr_of_accelerometers_p = nr_of_accelerometers;
 
-	for(int i = 0; i < (csv_dataList.size() - 2); i++){
-		cout << i << endl;
-		if(csv_dataList[i][0].compare("Accelerometer calibration parameters:") == 0){
-			cout<<"HIT!" << endl;
-			for(int j = 0; j < nr_of_accelerometers; j++){
-				cout << "I: " << i << endl;
-				cout << "J: " << j << endl;
-				for(int k = 0; k < csv_dataList[i + 2].size(); k++){
-					cout << "K: " << k << "endl";
-					param_data_array[0].push_back(stof(csv_dataList[i + 2][k]));
-				}
+	//creates an vector array per sensor and stores them in a vector of vectors
+	for(int i = accel_on_row + 2; i < accel_on_row + nr_of_accelerometers + 2; i++){
+		vector<float> tmp_data_array;
+		for(int j = 0 ; j < csv_dataList[i].size(); j++){
+			tmp_data_array.push_back(stof(csv_dataList[i][j]));
+		}
+		param_data_array.push_back(tmp_data_array);
+	}
+
+	//debug
+	if(VERBOSE){
+		for(int i = 0; i < param_data_array.size(); i ++){
+			cout << "Accelerometer " << i << " csv entries: " << endl;
+			for(int j = 0; j < param_data_array[i].size(); j++){
+				cout << param_data_array[i][j] << " ";
 			}
+			cout << endl << endl;
 		}
 	}
 
-	cout << "leaving.." << endl;
 	return param_data_array;
 }
 
@@ -77,16 +86,29 @@ vector<vector<string> > parameter_selection(int nr_of_sensors)
 	ostringstream oss;
 	//fill in CALL_ACC<sensor_nr>_D<row><col>
 	for(int x = 0; x < nr_of_sensors; x++){
+		vector<string> tmp_param_array;
 		for(int i = 0; i < 3; i++){
 			for(int j = 0; j < 3; j++){
 				oss.str("");
 				oss.clear();
 
 				oss << "CAL_ACC" << x << "_D" << i << j;
-				selected_params[x].push_back(oss.str());
+				tmp_param_array.push_back(oss.str());
 			}
 		}
+		selected_params.push_back(tmp_param_array);
 	}
+
+	//DEBUG
+	if(VERBOSE){
+		for(int i = 0; i < selected_params.size(); i ++){
+			for(int j = 0; j < selected_params[i].size(); j++){
+				cout << selected_params[i][j] << ", ";
+			}
+			cout << endl ;
+		}
+	}
+
 	return selected_params;
 }
 
@@ -139,12 +161,17 @@ int main()
 	output_file <<	"#" << endl;
 	output_file <<	"# Vehicle-Id Component-Id Name Value Type" << endl;
 
+	cout << endl;
+
 	for(int x = 0; x < nr_of_accelerometers; x++){
-		for(int i = 0; i < selected_params.size(); i++){
+		if(VERBOSE)cout << "Sensor nr : " << x << endl;
+		for(int i = 0; i < selected_params[x].size(); i++){
 			ostringstream oss;
 			oss << "1	1	"<< selected_params[x][i] << "	" << param_data_array[x][i] << "	9" << endl;
 			output_file << oss.str();
+			if(VERBOSE)cout << oss.str();
 		}
+		if(VERBOSE)cout << endl;
 	}
 
  	return 0;
