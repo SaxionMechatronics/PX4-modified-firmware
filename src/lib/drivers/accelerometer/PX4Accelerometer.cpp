@@ -158,9 +158,6 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 	// SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
 	const Vector3f val_calibrated{inv(_D) * ((raw * _scale) - _calibration_offset)};
 
-	// // Apply range scale and the calibrating offset/scale
-	// const Vector3f val_calibrated{((((raw * _scale) - _calibration_offset).emult(_calibration_scale))).emult(_misalignment_scale)};
-
 	// publish raw data immediately
 	{
 		sensor_accel_s report;
@@ -192,6 +189,16 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.x = val_calibrated(0);
 		report.y = val_calibrated(1);
 		report.z = val_calibrated(2);
+
+		report.d00 = _D(0,0);
+		report.d01 = _D(0,1);
+		report.d02 = _D(0,2);
+		report.d10 = _D(1,0);
+		report.d11 = _D(1,1);
+		report.d12 = _D(1,2);
+		report.d20 = _D(2,0);
+		report.d21 = _D(2,1);
+		report.d22 = _D(2,2);
 
 		report.scale = _scale;
 		report.rotation = _rotation;

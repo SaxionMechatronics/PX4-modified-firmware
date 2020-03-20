@@ -298,7 +298,33 @@ void VotedSensorsUpdate::parametersUpdate()
 				(void)sprintf(str, "CAL_ACC%u_ZOFF", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.z_offset));
 
-				//TODO DVALUES
+				(void)sprintf(str, "CAL_ACC%u_D00", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d00));
+
+				(void)sprintf(str, "CAL_ACC%u_D01", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d01));
+
+				(void)sprintf(str, "CAL_ACC%u_D02", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d02));
+
+				(void)sprintf(str, "CAL_ACC%u_D10", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d10));
+
+				(void)sprintf(str, "CAL_ACC%u_D11", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d11));
+
+				(void)sprintf(str, "CAL_ACC%u_D12", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d12));
+
+				(void)sprintf(str, "CAL_ACC%u_D20", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d20));
+
+				(void)sprintf(str, "CAL_ACC%u_D21", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d21));
+
+				(void)sprintf(str, "CAL_ACC%u_D22", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d22));
+
 
 				if (failed) {
 					PX4_ERR(CAL_ERROR_APPLY_CAL_MSG, "accel", i);

@@ -191,6 +191,15 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 	accel_scale.x_offset = 0.0f;
 	accel_scale.y_offset = 0.0f;
 	accel_scale.z_offset = 0.0f;
+	accel_scale.d00 = 1.0f;
+	accel_scale.d01 = 0.0f;
+	accel_scale.d02 = 0.0f;
+	accel_scale.d10 = 0.0f;
+	accel_scale.d11 = 1.0f;
+	accel_scale.d12 = 0.0f;
+	accel_scale.d20 = 0.0f;
+	accel_scale.d21 = 0.0f;
+	accel_scale.d22 = 1.0f;
 
 	//todo Dvalues
 	int res = PX4_OK;
@@ -234,6 +243,33 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 
 		(void)sprintf(str, "CAL_ACC%u_ZOFF", s);
 		res = param_set_no_notification(param_find(str), &accel_scale.z_offset);
+
+		(void)sprintf(str, "CAL_ACC%u_D00", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d00);
+
+		(void)sprintf(str, "CAL_ACC%u_D01", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d01);
+
+		(void)sprintf(str, "CAL_ACC%u_D02", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d02);
+
+		(void)sprintf(str, "CAL_ACC%u_D10", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d10);
+
+		(void)sprintf(str, "CAL_ACC%u_D11", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d11);
+
+		(void)sprintf(str, "CAL_ACC%u_D12", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d12);
+
+		(void)sprintf(str, "CAL_ACC%u_D20", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d20);
+
+		(void)sprintf(str, "CAL_ACC%u_D21", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d21);
+
+		(void)sprintf(str, "CAL_ACC%u_D22", s);
+		res = param_set_no_notification(param_find(str), &accel_scale.d22);
 
 		if (res != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
@@ -294,16 +330,32 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		accel_scale.y_offset = accel_offs_rotated(1);
 		accel_scale.z_offset = accel_offs_rotated(2);
 
-		//TODO replace with dval
-		// (void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
-		// param_get(param_find(str), &accel_scale.x_misalign);
-		//
-		// (void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
-		// param_get(param_find(str), &accel_scale.y_misalign);
-		//
-		// (void)sprintf(str, "CAL_ACC%u_ALGN_Z", uorb_index);
-		// param_get(param_find(str), &accel_scale.z_misalign);
-		//
+		(void)sprintf(str, "CAL_ACC%u_D00", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d00);
+
+		(void)sprintf(str, "CAL_ACC%u_D01", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d01);
+
+		(void)sprintf(str, "CAL_ACC%u_D02", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d02);
+
+		(void)sprintf(str, "CAL_ACC%u_D10", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d10);
+
+		(void)sprintf(str, "CAL_ACC%u_D11", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d11);
+
+		(void)sprintf(str, "CAL_ACC%u_D12", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d12);
+
+		(void)sprintf(str, "CAL_ACC%u_D20", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d20);
+
+		(void)sprintf(str, "CAL_ACC%u_D21", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d21);
+
+		(void)sprintf(str, "CAL_ACC%u_D22", uorb_index);
+		res = param_set_no_notification(param_find(str), &accel_scale.d22);
 
 		bool failed = false;
 
@@ -352,24 +404,6 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 					failed |= (PX4_OK != param_set_no_notification(handle, &val));
 				}
 
-				/* update the _SCL_ terms to include the scale factor */
-				// for (unsigned axis_index = 0; axis_index < 3; axis_index++) {
-				// 	val = 1.0f;
-				// 	(void)sprintf(str, "TC_A%u_SCL_%u", sensor_correction.accel_mapping[uorb_index], axis_index);
-				// 	handle = param_find(str);
-				//
-				// 	if (axis_index == 0) {
-				// 		val = accel_scale.x_scale;
-				//
-				// 	} else if (axis_index == 1) {
-				// 		val = accel_scale.y_scale;
-				//
-				// 	} else if (axis_index == 2) {
-				// 		val = accel_scale.z_scale;
-				// 	}
-				//
-				// 	failed |= (PX4_OK != param_set_no_notification(handle, &val));
-				// }
 
 				param_notify_changes();
 			}
@@ -378,6 +412,16 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 			accel_scale.x_offset = 0.f;
 			accel_scale.y_offset = 0.f;
 			accel_scale.z_offset = 0.f;
+
+			accel_scale.d00 = 1.f;
+			accel_scale.d01 = 0.f;
+			accel_scale.d02 = 0.f;
+			accel_scale.d11 = 0.f;
+			accel_scale.d11 = 1.f;
+			accel_scale.d12 = 0.f;
+			accel_scale.d20 = 0.f;
+			accel_scale.d21 = 0.f;
+			accel_scale.d22 = 1.f;
 		}
 
 
@@ -389,6 +433,33 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.y_offset)));
 		(void)sprintf(str, "CAL_ACC%u_ZOFF", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.z_offset)));
+
+		(void)sprintf(str, "CAL_ACC%u_D00", uorb_index);
+		failed |= param_set_no_notification(param_find(str), &accel_scale.d00);
+
+		(void)sprintf(str, "CAL_ACC%u_D01", uorb_index);
+		failed |= param_set_no_notification(param_find(str), &accel_scale.d01);
+
+		(void)sprintf(str, "CAL_ACC%u_D02", uorb_index);
+		failed |=  param_set_no_notification(param_find(str), &accel_scale.d02);
+
+		(void)sprintf(str, "CAL_ACC%u_D10", uorb_index);
+		failed |=  param_set_no_notification(param_find(str), &accel_scale.d10);
+
+		(void)sprintf(str, "CAL_ACC%u_D11", uorb_index);
+		failed |=  param_set_no_notification(param_find(str), &accel_scale.d11);
+
+		(void)sprintf(str, "CAL_ACC%u_D12", uorb_index);
+		failed |=  param_set_no_notification(param_find(str), &accel_scale.d12);
+
+		(void)sprintf(str, "CAL_ACC%u_D20", uorb_index);
+		failed |=  param_set_no_notification(param_find(str), &accel_scale.d20);
+
+		(void)sprintf(str, "CAL_ACC%u_D21", uorb_index);
+		failed |=  param_set_no_notification(param_find(str), &accel_scale.d21);
+
+		(void)sprintf(str, "CAL_ACC%u_D22", uorb_index);
+		failed |=  param_set_no_notification(param_find(str), &accel_scale.d22);
 
 		(void)sprintf(str, "CAL_ACC%u_ID", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(device_id[uorb_index])));
