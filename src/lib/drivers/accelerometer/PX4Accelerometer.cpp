@@ -95,18 +95,11 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
-			_calibration_scale = Vector3f{cal.x_scale, cal.y_scale, cal.z_scale};							//might be obsolete?
-			_misalignment_scale = Vector3f{cal.x_misalign, cal.y_misalign, cal.z_misalign}; 	//might be obsolete?
 
-			float misaling_data[9] = {1, 							0, 							0,
-															 cal.x_misalign, 	1, 							0,
-															 cal.y_misalign, 	cal.z_misalign, 1};
-		  _misalignment_matrix = SquareMatrix<float, 3>{misaling_data};
-
-			float scale_data[9] = {cal.x_scale,	0,					0,
-														0,						cal.y_scale,0,
-														0,						0,					cal.z_misalign};
-		  _scale_matrix = SquareMatrix<float, 3>{scale_data};
+			float misaling_data[9] = {cal.d00, 	cal.d01, 	cal.d02,
+															 	cal.d10, 	cal.d11, 	cal.d12,
+															 	cal.d20, 	cal.d21,	cal.d22};
+			_D = SquareMatrix<float, 3>{misaling_data};
 
 		}
 
@@ -162,8 +155,8 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		}
 	}
 
-	SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
-	const Vector3f new_val_calibrated{inv(D) * ((raw * _scale) - _calibration_offset)};
+	// SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
+	const Vector3f new_val_calibrated{inv(_D) * ((raw * _scale) - _calibration_offset)};
 
 	// Apply range scale and the calibrating offset/scale
 	const Vector3f val_calibrated{((((raw * _scale) - _calibration_offset).emult(_calibration_scale))).emult(_misalignment_scale)};

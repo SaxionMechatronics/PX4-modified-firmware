@@ -189,14 +189,10 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 
 	struct accel_calibration_s accel_scale;
 	accel_scale.x_offset = 0.0f;
-	accel_scale.x_scale = 1.0f;
 	accel_scale.y_offset = 0.0f;
-	accel_scale.y_scale = 1.0f;
 	accel_scale.z_offset = 0.0f;
-	accel_scale.z_scale = 1.0f;
-	accel_scale.x_misalign = 0.9f;	//DOCALIBRATION STUFF
-	accel_scale.y_misalign = 0.9f;
-	accel_scale.z_misalign = 0.9f;
+
+	//todo Dvalues
 	int res = PX4_OK;
 
 
@@ -238,48 +234,6 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 
 		(void)sprintf(str, "CAL_ACC%u_ZOFF", s);
 		res = param_set_no_notification(param_find(str), &accel_scale.z_offset);
-
-		if (res != PX4_OK) {
-			PX4_ERR("unable to reset %s", str);
-		}
-
-		(void)sprintf(str, "CAL_ACC%u_XSCALE", s);
-		res = param_set_no_notification(param_find(str), &accel_scale.x_scale);
-
-		if (res != PX4_OK) {
-			PX4_ERR("unable to reset %s", str);
-		}
-
-		(void)sprintf(str, "CAL_ACC%u_YSCALE", s);
-		res = param_set_no_notification(param_find(str), &accel_scale.y_scale);
-
-		if (res != PX4_OK) {
-			PX4_ERR("unable to reset %s", str);
-		}
-
-		(void)sprintf(str, "CAL_ACC%u_ZSCALE", s);
-		res = param_set_no_notification(param_find(str), &accel_scale.z_scale);
-
-		if (res != PX4_OK) {
-			PX4_ERR("unable to reset %s", str);
-		}
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_X", s);
-		res = param_set_no_notification(param_find(str), &accel_scale.x_misalign);
-
-		if (res != PX4_OK) {
-			PX4_ERR("unable to reset %s", str);
-		}
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", s);
-		res = param_set_no_notification(param_find(str), &accel_scale.y_misalign);
-
-		if (res != PX4_OK) {
-			PX4_ERR("unable to reset %s", str);
-		}
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_Z", s);
-		res = param_set_no_notification(param_find(str), &accel_scale.z_misalign);
 
 		if (res != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
@@ -334,25 +288,22 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		Vector3f accel_offs_vec(accel_offs[uorb_index]);
 		Vector3f accel_offs_rotated = board_rotation_t *accel_offs_vec;
 		Matrix3f accel_T_mat(accel_T[uorb_index]);
-		Matrix3f accel_T_rotated = board_rotation_t *accel_T_mat * board_rotation;
+		// Matrix3f accel_T_rotated = board_rotation_t *accel_T_mat * board_rotation;
 
 		accel_scale.x_offset = accel_offs_rotated(0);
-		accel_scale.x_scale = accel_T_rotated(0, 0);
 		accel_scale.y_offset = accel_offs_rotated(1);
-		accel_scale.y_scale = accel_T_rotated(1, 1);
 		accel_scale.z_offset = accel_offs_rotated(2);
-		accel_scale.z_scale = accel_T_rotated(2, 2);
 
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
-		param_get(param_find(str), &accel_scale.x_misalign);
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
-		param_get(param_find(str), &accel_scale.y_misalign);
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_Z", uorb_index);
-		param_get(param_find(str), &accel_scale.z_misalign);
-
+		//TODO replace with dval
+		// (void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
+		// param_get(param_find(str), &accel_scale.x_misalign);
+		//
+		// (void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
+		// param_get(param_find(str), &accel_scale.y_misalign);
+		//
+		// (void)sprintf(str, "CAL_ACC%u_ALGN_Z", uorb_index);
+		// param_get(param_find(str), &accel_scale.z_misalign);
+		//
 
 		bool failed = false;
 
@@ -363,10 +314,6 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 			 (double)accel_scale.x_offset,
 			 (double)accel_scale.y_offset,
 			 (double)accel_scale.z_offset);
-		PX4_INFO("found scale %d: x: %.6f, y: %.6f, z: %.6f", uorb_index,
-			 (double)accel_scale.x_scale,
-			 (double)accel_scale.y_scale,
-			 (double)accel_scale.z_scale);
 
 		/* check if thermal compensation is enabled */
 		int32_t tc_enabled_int;
@@ -406,23 +353,23 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 				}
 
 				/* update the _SCL_ terms to include the scale factor */
-				for (unsigned axis_index = 0; axis_index < 3; axis_index++) {
-					val = 1.0f;
-					(void)sprintf(str, "TC_A%u_SCL_%u", sensor_correction.accel_mapping[uorb_index], axis_index);
-					handle = param_find(str);
-
-					if (axis_index == 0) {
-						val = accel_scale.x_scale;
-
-					} else if (axis_index == 1) {
-						val = accel_scale.y_scale;
-
-					} else if (axis_index == 2) {
-						val = accel_scale.z_scale;
-					}
-
-					failed |= (PX4_OK != param_set_no_notification(handle, &val));
-				}
+				// for (unsigned axis_index = 0; axis_index < 3; axis_index++) {
+				// 	val = 1.0f;
+				// 	(void)sprintf(str, "TC_A%u_SCL_%u", sensor_correction.accel_mapping[uorb_index], axis_index);
+				// 	handle = param_find(str);
+				//
+				// 	if (axis_index == 0) {
+				// 		val = accel_scale.x_scale;
+				//
+				// 	} else if (axis_index == 1) {
+				// 		val = accel_scale.y_scale;
+				//
+				// 	} else if (axis_index == 2) {
+				// 		val = accel_scale.z_scale;
+				// 	}
+				//
+				// 	failed |= (PX4_OK != param_set_no_notification(handle, &val));
+				// }
 
 				param_notify_changes();
 			}
@@ -431,9 +378,6 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 			accel_scale.x_offset = 0.f;
 			accel_scale.y_offset = 0.f;
 			accel_scale.z_offset = 0.f;
-			accel_scale.x_scale = 1.f;
-			accel_scale.y_scale = 1.f;
-			accel_scale.z_scale = 1.f;
 		}
 
 
@@ -445,20 +389,6 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.y_offset)));
 		(void)sprintf(str, "CAL_ACC%u_ZOFF", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.z_offset)));
-
-		(void)sprintf(str, "CAL_ACC%u_XSCALE", uorb_index);
-		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.x_scale)));
-		(void)sprintf(str, "CAL_ACC%u_YSCALE", uorb_index);
-		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.y_scale)));
-		(void)sprintf(str, "CAL_ACC%u_ZSCALE", uorb_index);
-		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.z_scale)));
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
-		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.x_misalign)));
-		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
-		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.y_misalign)));
-		(void)sprintf(str, "CAL_ACC%u_ALGN_Z", uorb_index);
-		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(accel_scale.z_misalign)));
 
 		(void)sprintf(str, "CAL_ACC%u_ID", uorb_index);
 		failed |= (PX4_OK != param_set_no_notification(param_find(str), &(device_id[uorb_index])));
