@@ -156,11 +156,10 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 	}
 
 	// SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
-	const Vector3f new_val_calibrated{inv(_D) * ((raw * _scale) - _calibration_offset)};
+	const Vector3f val_calibrated{inv(_D) * ((raw * _scale) - _calibration_offset)};
 
-	// Apply range scale and the calibrating offset/scale
-	const Vector3f val_calibrated{((((raw * _scale) - _calibration_offset).emult(_calibration_scale))).emult(_misalignment_scale)};
-	const Vector3f val_scale_no_cal{((raw * _scale))};
+	// // Apply range scale and the calibrating offset/scale
+	// const Vector3f val_calibrated{((((raw * _scale) - _calibration_offset).emult(_calibration_scale))).emult(_misalignment_scale)};
 
 	// publish raw data immediately
 	{
@@ -194,19 +193,14 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.y = val_calibrated(1);
 		report.z = val_calibrated(2);
 
-		report.misalgnx = _misalignment_scale(0);
-		report.misalgny = _misalignment_scale(1);
-		report.misalgnz = _misalignment_scale(2);
-
 		report.scale = _scale;
 		report.rotation = _rotation;
 
 		for(int i = 0; i < 3; i++){ //for x y and z
 			report.xyz_calibration_offset[i] = _calibration_offset(i);
-		 	report.xyz_calibration_scale[i] = _calibration_scale(i);
-			report.xyz_scaled_no_cal[i] = val_scale_no_cal(i);
-			// report.xyz_scaled_and_cal[i] = val_calibrated(i);
 		}
+
+
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_fifo_full_pub.publish(report);
@@ -261,7 +255,8 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 		rotate_3f(_rotation, x, y, z);
 
 		// Apply range scale and the calibrating offset/scale
-		const Vector3f val_calibrated{((Vector3f{x, y, z} * _scale) - _calibration_offset).emult(_calibration_scale)};
+		// const Vector3f val_calibrated{((Vector3f{x, y, z} * _scale) - _calibration_offset).emult(_calibration_scale)};
+		const Vector3f val_calibrated{inv(_D) * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
 
 		sensor_accel_s report;
 
@@ -320,7 +315,8 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 			const Vector3f offset{_calibration_offset * _integrator_fifo_samples};
 
 			// Apply calibration and scale to seconds
-			Vector3f delta_velocity{((delta_velocity_uncalibrated - offset).emult(_calibration_scale))};
+			// Vector3f delta_velocity{((delta_velocity_uncalibrated - offset).emult(_calibration_scale))};
+			Vector3f delta_velocity{((delta_velocity_uncalibrated - offset))};
 			delta_velocity *= 1e-6f * dt;
 
 			// fill sensor_accel_integrated and publish
@@ -419,8 +415,8 @@ void PX4Accelerometer::print_status()
 {
 	PX4_INFO(ACCEL_BASE_DEVICE_PATH " device instance: %d", _class_device_instance);
 
-	PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
-		 (double)_calibration_scale(2));
-	PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),
-		 (double)_calibration_offset(2));
+	// PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
+	// 	 (double)_calibration_scale(2));
+	// PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),
+	// 	 (double)_calibration_offset(2));
 }

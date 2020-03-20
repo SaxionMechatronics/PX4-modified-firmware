@@ -101,12 +101,8 @@ private:
 
 	Integrator		_integrator{4000, false};
 
-	matrix::Vector3f	_calibration_scale{1.f, 1.f, 1.f};
 	matrix::Vector3f	_calibration_offset{0.f, 0.f, 0.f};
-	matrix::Vector3f	_misalignment_scale{1.f, 1.f, 1.f};
 	matrix::SquareMatrix<float, 3> _D;
-	// matrix::SquareMatrix<float, 3> _misalignment_matrix;
-	// matrix::SquareMatrix<float, 3> _scale_matrix;
 
 	matrix::Vector3f _delta_velocity_prev{0.f, 0.f, 0.f};	// delta velocity from the previous IMU measurement
 	float _vibration_metric{0.f};	// high frequency vibration level in the IMU delta velocity data (m/s)
