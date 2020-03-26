@@ -53,7 +53,7 @@ class ParameterData
 */
 void ParameterData::ReadMatlabCSV()
 {
-  CSVReader csv_reader("henk_csv_multiple_senors.csv", ",");
+  CSVReader csv_reader("henk_csv.csv", ",");
 	vector<vector<string> > csv_dataList = csv_reader.getData();
 	int accel_on_row  = 0;
 	int gyro_on_row = 0;

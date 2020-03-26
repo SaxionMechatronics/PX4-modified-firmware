@@ -193,14 +193,33 @@ void VotedSensorsUpdate::parametersUpdate()
 				(void)sprintf(str, "CAL_GYRO%u_ZOFF", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.z_offset));
 
-				(void)sprintf(str, "CAL_GYR%u_XOFF", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.x_misalign));
+				(void)sprintf(str, "CAL_GYRO%u_D00", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d00));
 
-				(void)sprintf(str, "CAL_GYR%u_YOFF", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.y_misalign));
+				(void)sprintf(str, "CAL_GYRO%u_D01", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d01));
 
-				(void)sprintf(str, "CAL_GYR%u_ZOFF", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.z_misalign));
+				(void)sprintf(str, "CAL_GYRO%u_D02", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d02));
+
+				(void)sprintf(str, "CAL_GYRO%u_D10", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d10));
+
+				(void)sprintf(str, "CAL_GYRO%u_D11", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d11));
+
+				(void)sprintf(str, "CAL_GYRO%u_D12", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d12));
+
+				(void)sprintf(str, "CAL_GYRO%u_D20", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d20));
+
+				(void)sprintf(str, "CAL_GYRO%u_D21", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d21));
+
+				(void)sprintf(str, "CAL_GYRO%u_D22", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d22));
+
 
 				if (failed) {
 					PX4_ERR(CAL_ERROR_APPLY_CAL_MSG, "gyro", i);
@@ -452,6 +471,7 @@ void VotedSensorsUpdate::parametersUpdate()
 
 				(void)sprintf(str, "CAL_MAG%u_ZOFF", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.z_offset));
+
 
 				//TODO dvalues
 				(void)sprintf(str, "CAL_MAG%u_ROT", i);

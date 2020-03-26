@@ -104,7 +104,6 @@ private:
 	Integrator		_integrator{4000, true};
 
 	matrix::Vector3f	_calibration_offset{0.f, 0.f, 0.f};
-	matrix::Vector3f	_misalignment_scale{1.f, 1.f, 1.f};
 	matrix::SquareMatrix<float, 3> _D;
 
 

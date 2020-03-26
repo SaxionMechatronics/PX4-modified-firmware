@@ -156,8 +156,7 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 	}
 
 	// Apply range scale and the calibrating offset/scale
-	const Vector3f misalgn_data{inv(_D) * ((raw * _scale) - _calibration_offset)};
-	const Vector3f val_rot_scale_no_cal{(raw * _scale)};
+	const Vector3f val_calibrated{inv(_D) * ((raw * _scale) - _calibration_offset)};
 
 	// publish raw data immediately
 	{
@@ -185,13 +184,19 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 		report.rotation = _rotation;
 		report.scale = _scale;
 
-		report.misalgnx = _misalignment_scale(0);
-		report.misalgny = _misalignment_scale(1);
-		report.misalgnz = _misalignment_scale(2);
-
 		report.x_raw = x_raw;
 		report.y_raw = y_raw;
 		report.z_raw = z_raw;
+
+		report.d00 = _D(0,0);
+		report.d01 = _D(0,1);
+		report.d02 = _D(0,2);
+		report.d10 = _D(1,0);
+		report.d11 = _D(1,1);
+		report.d12 = _D(1,2);
+		report.d20 = _D(2,0);
+		report.d21 = _D(2,1);
+		report.d22 = _D(2,2);
 
 		report.x = val_calibrated(0);
 		report.y = val_calibrated(1);
@@ -199,9 +204,8 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 
 		for(int i = 0; i < 3; i++){ //for x y and z
 			report.xyz_calibration_offset[i] = _calibration_offset(i);
-			report.xyz_rotated_and_scale_no_cal[i] = val_rot_scale_no_cal(i);
-			// report.xyz_rotated_and_cal[i] = val_calibrated(i);
 		}
+
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_fifo_full_pub.publish(report);
@@ -255,8 +259,7 @@ void PX4Gyroscope::updateFIFO(const FIFOSample &sample)
 
 		// publish raw data immediately
 	{
-		// Apply range scale and the calibration offset
-		const Vector3f val_calibrated{((Vector3f{x, y, z} * _scale) - _calibration_offset).emult(_misalignment_scale)};
+		const Vector3f val_calibrated{inv(_D) * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
 
 		sensor_gyro_s report;
 
