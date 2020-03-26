@@ -2252,89 +2252,6 @@ PARAM_DEFINE_FLOAT(RC_FLT_SMP_RATE, 50.0f);
  */
 PARAM_DEFINE_FLOAT(RC_FLT_CUTOFF, 10.0f);
 
-
-/**
-* MISALIGNMENT X ACCELEROMETER 0 ]
-*
-* misalignment on the x axis of accelerometer 0
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_X, 1.0f);
-
-
-/**
-* MISALIGNMENT X ACCELEROMETER 0 ]
-*
-* misalignment on the Y axis of accelerometer 0
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_Y, 1.0f);
-
-
-/**
-* MISALIGNMENT Z ACCELEROMETER 0 ]
-*
-* misalignment on the z axis of accelerometer 0
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_ACC0_ALGN_Z, 1.0f);
-
-/**
-* MISALIGNMENT X ACCELEROMETER 1 ]
-*
-* misalignment on the x axis of accelerometer 1
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_X, 1.0f);
-
-
-/**
-* MISALIGNMENT Y ACCELEROMETER 1 ]
-*
-* misalignment on the z axis of accelerometer 1
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_Y, 1.0f);
-
-
-/**
-* MISALIGNMENT Y ACCELEROMETER 1 ]
-*
-* misalignment on the z axis of accelerometer 1
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_ACC1_ALGN_Z, 1.0f);
-
 PARAM_DEFINE_FLOAT(CAL_ACC0_D00, 1.0f);
 PARAM_DEFINE_FLOAT(CAL_ACC0_D01, 1.0f);
 PARAM_DEFINE_FLOAT(CAL_ACC0_D02, 1.0f);
@@ -2357,85 +2274,22 @@ PARAM_DEFINE_FLOAT(CAL_ACC1_D20, 1.0f);
 PARAM_DEFINE_FLOAT(CAL_ACC1_D21, 1.0f);
 PARAM_DEFINE_FLOAT(CAL_ACC1_D22, 1.0f);
 
+PARAM_DEFINE_FLOAT(CAL_GYR0_D00, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR0_D01, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR0_D02, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR0_D10, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR0_D11, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR0_D12, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR0_D20, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR0_D21, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR0_D22, 1.0f);
 
-/**
-* MISALIGNMENT X GYRO 0 ]
-*
-* misalignment on the x axis of gyroscope 0
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_GYR0_ALGN_X, 1.0f);
-
-
-/**
-* MISALIGNMENT Y GYRO 0 ]
-*
-* misalignment on the y axis of gyroscope 0
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_GYR0_ALGN_Y, 1.0f);
-
-
-/**
-* MISALIGNMENT Z GYRO 0 ]
-*
-* misalignment on the z axis of gyroscope 0
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_GYR0_ALGN_Z, 1.0f);
-
-/**
-* MISALIGNMENT X GYRO 1 ]
-*
-* misalignment on the x axis of gyroscope 1
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_GYR1_ALGN_X, 1.0f);
-
-
-/**
-* MISALIGNMENT Y GYRO 1 ]
-*
-* misalignment on the y axis of gyroscope 1
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_GYR1_ALGN_Y, 1.0f);
-
-
-/**
-* MISALIGNMENT Z GYRO 1 ]
-*
-* misalignment on the z axis of gyroscope 1
-*
-* @min 0
-* @max 10
-* @unit n.a
-* @reboot_required true
-* @group Sensors
-*/
-PARAM_DEFINE_FLOAT(CAL_GYR1_ALGN_Z, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D00, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D01, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D02, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D10, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D11, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D12, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D20, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D21, 1.0f);
+PARAM_DEFINE_FLOAT(CAL_GYR1_D22, 1.0f);

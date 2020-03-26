@@ -105,7 +105,9 @@ private:
 
 	matrix::Vector3f	_calibration_offset{0.f, 0.f, 0.f};
 	matrix::Vector3f	_misalignment_scale{1.f, 1.f, 1.f};
-	
+	matrix::SquareMatrix<float, 3> _D;
+
+
 	matrix::Vector3f _delta_angle_prev{0.f, 0.f, 0.f};	// delta angle from the previous IMU measurement
 	float _vibration_metric{0.f};	// high frequency vibration level in the IMU delta angle data (rad)
 	float _coning_vibration{0.f};	// Level of coning vibration in the IMU delta angles (rad^2)

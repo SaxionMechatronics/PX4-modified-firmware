@@ -96,7 +96,12 @@ int PX4Gyroscope::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 			memcpy(&cal, (gyro_calibration_s *) arg, sizeof(cal));
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
-			_misalignment_scale = Vector3f{cal.x_misalign, cal.y_misalign, cal.z_misalign};
+
+			float misalgn_data[9] = {	cal.d00, 	cal.d01, 	cal.d02,
+																cal.d10,	cal.d11,	cal.d12,
+																cal.d20,	cal.d21,	cal.d22 };
+
+			_D = matrix::SquareMatrix<float, 3>{misalgn_data};
 		}
 
 		return PX4_OK;
@@ -151,7 +156,7 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 	}
 
 	// Apply range scale and the calibrating offset/scale
-	const Vector3f val_calibrated{((raw * _scale) - _calibration_offset).emult(_misalignment_scale)};
+	const Vector3f misalgn_data{inv(_D) * ((raw * _scale) - _calibration_offset)};
 	const Vector3f val_rot_scale_no_cal{(raw * _scale)};
 
 	// publish raw data immediately
