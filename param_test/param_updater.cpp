@@ -39,6 +39,7 @@ class ParameterData
 
 	int nr_of_accelerometers;
 	int nr_of_gyroscopes;
+	int nr_of_magnetometers;
 
 
 	public:
@@ -57,6 +58,7 @@ void ParameterData::ReadMatlabCSV()
 	vector<vector<string> > csv_dataList = csv_reader.getData();
 	int accel_on_row  = 0;
 	int gyro_on_row = 0;
+	int mag_on_row = 0;
 
 	for(int i = 0; i < csv_dataList.size(); i++){
 		if(csv_dataList[i][0].compare("Accelerometer calibration parameters:") == 0){
@@ -65,14 +67,21 @@ void ParameterData::ReadMatlabCSV()
 		}
 
 		if(csv_dataList[i][0].compare("Gyroscope calibration parameters:") == 0){
-			gyro_on_row = i;
 			//rownr of accelerometer - rownr accel -2 definition rows = nr of sensors
+			gyro_on_row = i;
 			nr_of_accelerometers = (i - accel_on_row - 2);
 		}
 
 		if(csv_dataList[i][0].compare("Magnetometer calibration parameters:") == 0){
-			//rownr of accelerometer - rownr gyro -2 definition rows = nr of sensors
+			//rownr of gyroscope - rownr gyro -2 definition rows = nr of sensors
+			mag_on_row = i;
 			nr_of_gyroscopes = (i - gyro_on_row - 2);
+		}
+
+		if(csv_dataList[i][0].compare("Kinematics:") == 0){
+			//rownr of gyroscope - rownr gyro -2 definition rows = nr of sensors
+			nr_of_magnetometers = (i - mag_on_row - 2);
+			cout << "Number of mangetometers: " << nr_of_magnetometers << endl;
 		}
 	}
 
@@ -88,6 +97,15 @@ void ParameterData::ReadMatlabCSV()
 
 	//creates an vector array per accellerometer and stores them in a vector of vectors
 	for(int i = gyro_on_row + 2; i < gyro_on_row + nr_of_gyroscopes + 2; i++){
+		vector<float> tmp_data_array;
+		for(int j = 0 ; j < csv_dataList[i].size(); j++){
+			tmp_data_array.push_back(stof(csv_dataList[i][j]));
+		}
+		csv_data_array.push_back(tmp_data_array);
+	}
+
+	//creates an vector array per accellerometer and stores them in a vector of vectors
+	for(int i = mag_on_row + 2; i < mag_on_row + nr_of_magnetometers + 2; i++){
 		vector<float> tmp_data_array;
 		for(int j = 0 ; j < csv_dataList[i].size(); j++){
 			tmp_data_array.push_back(stof(csv_dataList[i][j]));
@@ -135,6 +153,20 @@ void ParameterData::ParameterSelection()
 				oss.clear();
 
 				oss << "CAL_GYR" << i << "_D" << j << k;
+				tmp_param_array.push_back(oss.str());
+			}
+		}
+		selected_params.push_back(tmp_param_array);
+	}
+
+	for(int i = 0; i < nr_of_magnetometers; i++){
+		vector<string> tmp_param_array;
+		for(int j = 0; j < 3; j++){
+			for(int k = 0; k < 3; k++){
+				oss.str("");
+				oss.clear();
+
+				oss << "CAL_MAG" << i << "_D" << j << k;
 				tmp_param_array.push_back(oss.str());
 			}
 		}
