@@ -55,6 +55,7 @@ struct accel_calibration_s {
 		float	x_offset;
 		float	y_offset;
 		float	z_offset;
+
 		float d00;
 		float d01;
 		float d02;
