@@ -12,13 +12,16 @@ int16 x_raw                       # raw register values of X
 int16 y_raw                       # raw register values of Y
 int16 z_raw                       # raw register values of Z
 
-float32 misalgnx                  # misalignment value of x
-float32 misalgny                  # misalignment value of y
-float32 misalgnz                  # misalignment zalue of z
+float32 d00
+float32 d01
+float32 d02
+float32 d10
+float32 d11
+float32 d12
+float32 d20
+float32 d21
+float32 d22
 
 float32 x                 # angular velocity in the NED X board axis in rad/s
 float32 y                 # angular velocity in the NED Y board axis in rad/s
 float32 z                 # angular velocity in the NED Z board axis in rad/s
-
-float32[3] xyz_rotated_and_scale_no_cal                   # scaled uncalibrated values of XYZ
-# float32[3] xyz_rotated_and_cal                  # gyro in the NED XYZ board axis in m/s/s
