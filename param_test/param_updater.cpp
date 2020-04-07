@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <math.h>
 #include <iterator>
 #include <string>
 #include <algorithm>
@@ -36,7 +37,6 @@ class ParameterData
 {
 	vector<vector<float> > csv_data_array;
 	vector<vector<string> > selected_params;
-
 	vector<vector<string> > params_with_val;
 
 	int nr_of_accelerometers;
@@ -51,6 +51,7 @@ class ParameterData
 
 };
 
+//id's with corresponding param nr
 vector<vector<int>> id_param_nr = {{4260618, 1},
 																		{3866634, 0},
 																		{3932170, 1},
@@ -96,23 +97,56 @@ void ParameterData::ReadMatlabCSV()
 
 	//creates an vector array per accellerometer and stores them in a vector of vectors
 	for(int csv_row = accel_on_row + 2; csv_row < accel_on_row + nr_of_accelerometers + 2; csv_row++){
-		vector<float> tmp_data_array;
 		int sensor_nr;
-		for(int csv_col = 0 ; csv_col < csv_dataList[csv_row].size(); csv_col++){
-			if(csv_col == 1){
-				for(int id_param_index = 0; id_param_index < id_param_nr.size(); id_param_index++){
-					//find id with corresponding parameter number
-					if(id_param_nr[id_param_index][0] == stof(csv_dataList[csv_row][0])){
-						sensor_nr = id_param_nr[id_param_index][1];
-					}
-				}
-			}else{
-				tmp_data_array.push_back(stof(csv_dataList[csv_row][csv_col]));
+
+		//find id with corresponding parameter number
+		for(int id_param_index = 0; id_param_index < id_param_nr.size(); id_param_index++){
+			if(id_param_nr[id_param_index][0] == stof(csv_dataList[csv_row][0])){
+				sensor_nr = id_param_nr[id_param_index][1];
 			}
 		}
-		cout << endl;
-		csv_data_array.push_back(tmp_data_array);
+
+		//Fill in parameters values and determine the correct parameter string with it
+		//Dmatrix only
+		for(int csv_col = 1 ; csv_col < csv_dataList[csv_row].size() - 3; csv_col++){
+			ostringstream oss;
+
+			//divide the column index by 3 and round it down to get the row in de Dmatrix
+			//Take the modulo 3 to get the column index of the Dmatrix
+			oss << "CAL_ACC" << sensor_nr << "_D" << floor((csv_col-1)/3)
+			<< (csv_col-1) % 3;
+
+			//parse string to float and back to string to remove whitespaces(dirty solution)
+			vector<string> tmp_entry = {oss.str(), to_string(stof(csv_dataList[csv_row][csv_col]))};
+			params_with_val.push_back(tmp_entry);
+		}
+
+		//adding bias to list
+
+		ostringstream oss;
+
+
+		oss << "CAL_ACC" << sensor_nr << "_XOFF";
+		params_with_val.push_back({oss.str(),
+			to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row].size() - 3]))});
+
+		oss.str("");
+		oss << "CAL_ACC" << sensor_nr << "_YOFF";
+		params_with_val.push_back({oss.str(),
+			 to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row].size() - 2]))});
+
+		oss.str("");
+		oss << "CAL_ACC" << sensor_nr << "_ZOFF";
+		params_with_val.push_back({oss.str(),
+		to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row]	.size() - 1]))});
 	}
+
+	if(VERBOSE){
+		for(int i = 0; i < params_with_val.size(); i++){
+			cout << params_with_val[i][0] << ", Value: " << params_with_val[i][1] << endl;
+		}
+	}
+
 
 	//creates an vector array per accellerometer and stores them in a vector of vectors
 	for(int i = gyro_on_row + 2; i < gyro_on_row + nr_of_gyroscopes + 2; i++){
@@ -222,16 +256,16 @@ void ParameterData::WriteParamToFile(){
 
 	if(VERBOSE)cout << endl;
 
-	for(int x = 0; x < selected_params.size(); x++){
-		if(VERBOSE)cout << "Sensor nr : " << x << endl;
-		for(int i = 0; i < selected_params[x].size(); i++){
-			ostringstream oss;
-			oss << "1	1	"<< selected_params[x][i] << "	" << csv_data_array[x][i] << "	9" << endl;
-			output_file << oss.str();
-			if(VERBOSE)cout << oss.str();
-		}
-		if(VERBOSE)cout << endl;
-	}
+	// for(int x = 0; x < selected_params.size(); x++){
+	// 	if(VERBOSE)cout << "Sensor nr : " << x << endl;
+	// 	for(int i = 0; i < selected_params[x].size(); i++){
+	// 		ostringstream oss;
+	// 		oss << "1	1	"<< selected_params[x][i] << "	" << csv_data_array[x][i] << "	9" << endl;
+	// 		output_file << oss.str();
+	// 		if(VERBOSE)cout << oss.str();
+	// 	}
+	// 	if(VERBOSE)cout << endl;
+	// }
 }
 
 /*
