@@ -35,14 +35,7 @@ public:
 
 class ParameterData
 {
-	vector<vector<float> > csv_data_array;
-	vector<vector<string> > selected_params;
 	vector<vector<string> > params_with_val;
-
-	int nr_of_accelerometers;
-	int nr_of_gyroscopes;
-	int nr_of_magnetometers;
-
 
 	public:
 	void ReadMatlabCSV();
@@ -69,6 +62,10 @@ void ParameterData::ReadMatlabCSV()
 	int accel_on_row  = 0;
 	int gyro_on_row = 0;
 	int mag_on_row = 0;
+
+	int nr_of_accelerometers;
+	int nr_of_gyroscopes;
+	int nr_of_magnetometers;
 
 	for(int i = 0; i < csv_dataList.size(); i++){
 		if(csv_dataList[i][0].compare("Accelerometer calibration parameters:") == 0){
@@ -98,31 +95,11 @@ void ParameterData::ReadMatlabCSV()
 	FillParameter(csv_dataList ,gyro_on_row, nr_of_gyroscopes, "CAL_GYR");
 	FillParameter(csv_dataList ,mag_on_row, nr_of_magnetometers, "CAL_MAG");
 
-	for(int i = mag_on_row + 2; i < mag_on_row + nr_of_magnetometers + 2; i++){
-		vector<float> tmp_data_array;
-		for(int j = 0 ; j < csv_dataList[i].size(); j++){
-			tmp_data_array.push_back(stof(csv_dataList[i][j]));
-		}
-		csv_data_array.push_back(tmp_data_array);
-	}
-
 	if(VERBOSE){
 		for(int i = 0; i < params_with_val.size(); i++){
 			cout << params_with_val[i][0] << ", Value: " << params_with_val[i][1] << endl;
 		}
 	}
-
-	//debug
-	if(VERBOSE){
-		for(int i = 0; i < csv_data_array.size(); i ++){
-			cout << " Data entry " << i << ", csv entries: " << endl;
-			for(int j = 0; j < csv_data_array[i].size(); j++){
-				cout << csv_data_array[i][j] << " ";
-			}
-			cout << endl << endl;
-		}
-	}
-
 }
 
 //choose which parameters to modify
@@ -141,7 +118,7 @@ void ParameterData::FillParameter(vector<vector<string> > csv_dataList, int sens
 
 		//Fill in parameters values and determine the correct parameter string with it
 		//Dmatrix only
-		for(int csv_col = 1 ; csv_col < csv_dataList[csv_row].size() - 3; csv_col++){
+		for(int csv_col = 1 ; csv_col < 9; csv_col++){
 			ostringstream oss;
 
 			//divide the column index by 3 and round it down to get the row in de Dmatrix
@@ -158,17 +135,17 @@ void ParameterData::FillParameter(vector<vector<string> > csv_dataList, int sens
 
 		oss << param_str << sensor_nr << "_XOFF";
 		params_with_val.push_back({oss.str(),
-			to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row].size() - 3]))});
+			to_string(stof(csv_dataList[csv_row][9]))});
 
 		oss.str("");
 		oss << param_str << sensor_nr << "_YOFF";
 		params_with_val.push_back({oss.str(),
-			 to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row].size() - 2]))});
+			 to_string(stof(csv_dataList[csv_row][10]))});
 
 		oss.str("");
 		oss << param_str << sensor_nr << "_ZOFF";
 		params_with_val.push_back({oss.str(),
-		to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row]	.size() - 1]))});
+		to_string(stof(csv_dataList[csv_row][11]))});
 	}
 }
 
@@ -186,17 +163,13 @@ void ParameterData::WriteParamToFile(){
 	output_file <<	"# Vehicle-Id Component-Id Name Value Type" << endl;
 
 	if(VERBOSE)cout << endl;
-
-	// for(int x = 0; x < selected_params.size(); x++){
-	// 	if(VERBOSE)cout << "Sensor nr : " << x << endl;
-	// 	for(int i = 0; i < selected_params[x].size(); i++){
-	// 		ostringstream oss;
-	// 		oss << "1	1	"<< selected_params[x][i] << "	" << csv_data_array[x][i] << "	9" << endl;
-	// 		output_file << oss.str();
-	// 		if(VERBOSE)cout << oss.str();
-	// 	}
-	// 	if(VERBOSE)cout << endl;
-	// }
+	for(int i = 0; i < params_with_val.size(); i++){
+		ostringstream oss;
+		oss << "1	1	" << params_with_val[i][0] << "	" << params_with_val[i][1] << "	9" << endl;
+		output_file << oss.str();
+		if(VERBOSE)cout << oss.str();
+	}
+	if(VERBOSE)cout << endl;
 }
 
 /*
@@ -228,8 +201,7 @@ int main()
   //actual csv file with params from matlab
 	ParameterData parameter_data;
 	parameter_data.ReadMatlabCSV();
-	// parameter_data.ParameterSelection();
-	// parameter_data.WriteParamToFile();
+	parameter_data.WriteParamToFile();
 
  	return 0;
 }
