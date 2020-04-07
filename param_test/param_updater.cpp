@@ -9,7 +9,7 @@
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 using namespace std;
 
@@ -37,6 +37,8 @@ class ParameterData
 	vector<vector<float> > csv_data_array;
 	vector<vector<string> > selected_params;
 
+	vector<vector<string> > params_with_val;
+
 	int nr_of_accelerometers;
 	int nr_of_gyroscopes;
 	int nr_of_magnetometers;
@@ -48,6 +50,13 @@ class ParameterData
 	void WriteParamToFile();
 
 };
+
+vector<vector<int>> id_param_nr = {{4260618, 1},
+																		{3866634, 0},
+																		{3932170, 1},
+																		{4325898, 0},
+																		{396825, 1},
+																		{396809, 0}};
 
 /*
 * Reads csv file from henk with the parameters coming from matlab
@@ -81,17 +90,27 @@ void ParameterData::ReadMatlabCSV()
 		if(csv_dataList[i][0].compare("Kinematics:") == 0){
 			//rownr of gyroscope - rownr gyro -2 definition rows = nr of sensors
 			nr_of_magnetometers = (i - mag_on_row - 2);
-			cout << "Number of mangetometers: " << nr_of_magnetometers << endl;
 		}
 	}
 
 
 	//creates an vector array per accellerometer and stores them in a vector of vectors
-	for(int i = accel_on_row + 2; i < accel_on_row + nr_of_accelerometers + 2; i++){
+	for(int csv_row = accel_on_row + 2; csv_row < accel_on_row + nr_of_accelerometers + 2; csv_row++){
 		vector<float> tmp_data_array;
-		for(int j = 0 ; j < csv_dataList[i].size(); j++){
-			tmp_data_array.push_back(stof(csv_dataList[i][j]));
+		int sensor_nr;
+		for(int csv_col = 0 ; csv_col < csv_dataList[csv_row].size(); csv_col++){
+			if(csv_col == 1){
+				for(int id_param_index = 0; id_param_index < id_param_nr.size(); id_param_index++){
+					//find id with corresponding parameter number
+					if(id_param_nr[id_param_index][0] == stof(csv_dataList[csv_row][0])){
+						sensor_nr = id_param_nr[id_param_index][1];
+					}
+				}
+			}else{
+				tmp_data_array.push_back(stof(csv_dataList[csv_row][csv_col]));
+			}
 		}
+		cout << endl;
 		csv_data_array.push_back(tmp_data_array);
 	}
 
@@ -132,9 +151,12 @@ void ParameterData::ParameterSelection()
 	ostringstream oss;
 	//fill in CALL_ACC<sensor_nr>_D<row><col>
 	for(int i = 0; i < nr_of_accelerometers; i++){
+		// int accel_id
 		vector<string> tmp_param_array;
 		for(int j = 0; j < 3; j++){
 			for(int k = 0; k < 3; k++){
+				 // find corresponding id for sensor
+
 				oss.str("");
 				oss.clear();
 
@@ -219,7 +241,6 @@ void ParameterData::WriteParamToFile(){
 vector<vector<string> > CSVReader::getData()
 {
 	ifstream file(fileName);
-
 	vector<vector<string> > dataList;
 
 	string line = "";
