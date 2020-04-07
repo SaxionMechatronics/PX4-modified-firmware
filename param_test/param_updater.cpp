@@ -46,7 +46,7 @@ class ParameterData
 
 	public:
 	void ReadMatlabCSV();
-	void ParameterSelection();
+	void FillParameter(vector<vector<string> > csv_dataList, int sensor_on_row, int nr_of_sensors, string param_str);
 	void WriteParamToFile();
 
 };
@@ -94,76 +94,22 @@ void ParameterData::ReadMatlabCSV()
 		}
 	}
 
+	FillParameter(csv_dataList ,accel_on_row, nr_of_accelerometers, "CAL_ACC");
+	FillParameter(csv_dataList ,gyro_on_row, nr_of_gyroscopes, "CAL_GYR");
+	FillParameter(csv_dataList ,mag_on_row, nr_of_magnetometers, "CAL_MAG");
 
-	//creates an vector array per accellerometer and stores them in a vector of vectors
-	for(int csv_row = accel_on_row + 2; csv_row < accel_on_row + nr_of_accelerometers + 2; csv_row++){
-		int sensor_nr;
-
-		//find id with corresponding parameter number
-		for(int id_param_index = 0; id_param_index < id_param_nr.size(); id_param_index++){
-			if(id_param_nr[id_param_index][0] == stof(csv_dataList[csv_row][0])){
-				sensor_nr = id_param_nr[id_param_index][1];
-			}
-		}
-
-		//Fill in parameters values and determine the correct parameter string with it
-		//Dmatrix only
-		for(int csv_col = 1 ; csv_col < csv_dataList[csv_row].size() - 3; csv_col++){
-			ostringstream oss;
-
-			//divide the column index by 3 and round it down to get the row in de Dmatrix
-			//Take the modulo 3 to get the column index of the Dmatrix
-			oss << "CAL_ACC" << sensor_nr << "_D" << floor((csv_col-1)/3)
-			<< (csv_col-1) % 3;
-
-			//parse string to float and back to string to remove whitespaces(dirty solution)
-			vector<string> tmp_entry = {oss.str(), to_string(stof(csv_dataList[csv_row][csv_col]))};
-			params_with_val.push_back(tmp_entry);
-		}
-
-		//adding bias to list
-
-		ostringstream oss;
-
-
-		oss << "CAL_ACC" << sensor_nr << "_XOFF";
-		params_with_val.push_back({oss.str(),
-			to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row].size() - 3]))});
-
-		oss.str("");
-		oss << "CAL_ACC" << sensor_nr << "_YOFF";
-		params_with_val.push_back({oss.str(),
-			 to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row].size() - 2]))});
-
-		oss.str("");
-		oss << "CAL_ACC" << sensor_nr << "_ZOFF";
-		params_with_val.push_back({oss.str(),
-		to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row]	.size() - 1]))});
-	}
-
-	if(VERBOSE){
-		for(int i = 0; i < params_with_val.size(); i++){
-			cout << params_with_val[i][0] << ", Value: " << params_with_val[i][1] << endl;
-		}
-	}
-
-
-	//creates an vector array per accellerometer and stores them in a vector of vectors
-	for(int i = gyro_on_row + 2; i < gyro_on_row + nr_of_gyroscopes + 2; i++){
-		vector<float> tmp_data_array;
-		for(int j = 0 ; j < csv_dataList[i].size(); j++){
-			tmp_data_array.push_back(stof(csv_dataList[i][j]));
-		}
-		csv_data_array.push_back(tmp_data_array);
-	}
-
-	//creates an vector array per accellerometer and stores them in a vector of vectors
 	for(int i = mag_on_row + 2; i < mag_on_row + nr_of_magnetometers + 2; i++){
 		vector<float> tmp_data_array;
 		for(int j = 0 ; j < csv_dataList[i].size(); j++){
 			tmp_data_array.push_back(stof(csv_dataList[i][j]));
 		}
 		csv_data_array.push_back(tmp_data_array);
+	}
+
+	if(VERBOSE){
+		for(int i = 0; i < params_with_val.size(); i++){
+			cout << params_with_val[i][0] << ", Value: " << params_with_val[i][1] << endl;
+		}
 	}
 
 	//debug
@@ -180,65 +126,50 @@ void ParameterData::ReadMatlabCSV()
 }
 
 //choose which parameters to modify
-void ParameterData::ParameterSelection()
+void ParameterData::FillParameter(vector<vector<string> > csv_dataList, int sensor_on_row, int nr_of_sensors, string param_str)
 {
-	ostringstream oss;
-	//fill in CALL_ACC<sensor_nr>_D<row><col>
-	for(int i = 0; i < nr_of_accelerometers; i++){
-		// int accel_id
-		vector<string> tmp_param_array;
-		for(int j = 0; j < 3; j++){
-			for(int k = 0; k < 3; k++){
-				 // find corresponding id for sensor
+	//creates an vector array per accellerometer and stores them in a vector of vectors
+	for(int csv_row = sensor_on_row + 2; csv_row < sensor_on_row + nr_of_sensors + 2; csv_row++){
+		int sensor_nr;
 
-				oss.str("");
-				oss.clear();
-
-				oss << "CAL_ACC" << i << "_D" << j << k;
-				tmp_param_array.push_back(oss.str());
+		//find id with corresponding parameter number
+		for(int id_param_index = 0; id_param_index < id_param_nr.size(); id_param_index++){
+			if(id_param_nr[id_param_index][0] == stof(csv_dataList[csv_row][0])){
+				sensor_nr = id_param_nr[id_param_index][1];
 			}
 		}
-		selected_params.push_back(tmp_param_array);
-	}
 
-	for(int i = 0; i < nr_of_gyroscopes; i++){
-		vector<string> tmp_param_array;
-		for(int j = 0; j < 3; j++){
-			for(int k = 0; k < 3; k++){
-				oss.str("");
-				oss.clear();
+		//Fill in parameters values and determine the correct parameter string with it
+		//Dmatrix only
+		for(int csv_col = 1 ; csv_col < csv_dataList[csv_row].size() - 3; csv_col++){
+			ostringstream oss;
 
-				oss << "CAL_GYR" << i << "_D" << j << k;
-				tmp_param_array.push_back(oss.str());
-			}
+			//divide the column index by 3 and round it down to get the row in de Dmatrix
+			//Take the modulo 3 to get the column index of the Dmatrix
+			oss << param_str << sensor_nr << "_D" << floor((csv_col-1)/3)
+			<< (csv_col-1) % 3;
+
+			//parse string to float and back to string to remove whitespaces(dirty solution)
+			vector<string> tmp_entry = {oss.str(), to_string(stof(csv_dataList[csv_row][csv_col]))};
+			params_with_val.push_back(tmp_entry);
 		}
-		selected_params.push_back(tmp_param_array);
+		//adding bias to list
+		ostringstream oss;
+
+		oss << param_str << sensor_nr << "_XOFF";
+		params_with_val.push_back({oss.str(),
+			to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row].size() - 3]))});
+
+		oss.str("");
+		oss << param_str << sensor_nr << "_YOFF";
+		params_with_val.push_back({oss.str(),
+			 to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row].size() - 2]))});
+
+		oss.str("");
+		oss << param_str << sensor_nr << "_ZOFF";
+		params_with_val.push_back({oss.str(),
+		to_string(stof(csv_dataList[csv_row][csv_dataList[csv_row]	.size() - 1]))});
 	}
-
-	for(int i = 0; i < nr_of_magnetometers; i++){
-		vector<string> tmp_param_array;
-		for(int j = 0; j < 3; j++){
-			for(int k = 0; k < 3; k++){
-				oss.str("");
-				oss.clear();
-
-				oss << "CAL_MAG" << i << "_D" << j << k;
-				tmp_param_array.push_back(oss.str());
-			}
-		}
-		selected_params.push_back(tmp_param_array);
-	}
-
-	//DEBUG
-	if(VERBOSE){
-		for(int i = 0; i < selected_params.size(); i ++){
-			for(int j = 0; j < selected_params[i].size(); j++){
-				cout << selected_params[i][j] << ", ";
-			}
-			cout << endl ;
-		}
-	}
-
 }
 
 void ParameterData::WriteParamToFile(){
@@ -297,8 +228,8 @@ int main()
   //actual csv file with params from matlab
 	ParameterData parameter_data;
 	parameter_data.ReadMatlabCSV();
-	parameter_data.ParameterSelection();
-	parameter_data.WriteParamToFile();
+	// parameter_data.ParameterSelection();
+	// parameter_data.WriteParamToFile();
 
  	return 0;
 }
