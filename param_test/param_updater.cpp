@@ -111,15 +111,17 @@ void ParameterData::FillParameter(vector<vector<string> > csv_dataList, int sens
 
 		//find id with corresponding parameter number
 		for(int id_param_index = 0; id_param_index < id_param_nr.size(); id_param_index++){
-			if(id_param_nr[id_param_index][0] == stof(csv_dataList[csv_row][0])){
+			if(id_param_nr[id_param_index][0] == stod(csv_dataList[csv_row][0])){
 				sensor_nr = id_param_nr[id_param_index][1];
 			}
 		}
 
 		//Fill in parameters values and determine the correct parameter string with it
 		//Dmatrix only
-		for(int csv_col = 1 ; csv_col < 9; csv_col++){
+		for(int csv_col = 1 ; csv_col < 10; csv_col++){
 			ostringstream oss;
+			oss.precision(20);
+			cout.precision(20);
 
 			//divide the column index by 3 and round it down to get the row in de Dmatrix
 			//Take the modulo 3 to get the column index of the Dmatrix
@@ -127,25 +129,22 @@ void ParameterData::FillParameter(vector<vector<string> > csv_dataList, int sens
 			<< (csv_col-1) % 3;
 
 			//parse string to float and back to string to remove whitespaces(dirty solution)
-			vector<string> tmp_entry = {oss.str(), to_string(stof(csv_dataList[csv_row][csv_col]))};
+			vector<string> tmp_entry = {oss.str(), csv_dataList[csv_row][csv_col]};
 			params_with_val.push_back(tmp_entry);
 		}
 		//adding bias to list
 		ostringstream oss;
-
+		oss.precision(20);
 		oss << param_str << sensor_nr << "_XOFF";
-		params_with_val.push_back({oss.str(),
-			to_string(stof(csv_dataList[csv_row][9]))});
+		params_with_val.push_back({oss.str(), csv_dataList[csv_row][10]});
 
 		oss.str("");
 		oss << param_str << sensor_nr << "_YOFF";
-		params_with_val.push_back({oss.str(),
-			 to_string(stof(csv_dataList[csv_row][10]))});
+		params_with_val.push_back({oss.str(), csv_dataList[csv_row][11]});
 
 		oss.str("");
 		oss << param_str << sensor_nr << "_ZOFF";
-		params_with_val.push_back({oss.str(),
-		to_string(stof(csv_dataList[csv_row][11]))});
+		params_with_val.push_back({oss.str(), csv_dataList[csv_row][12]});
 	}
 }
 
@@ -163,8 +162,10 @@ void ParameterData::WriteParamToFile(){
 	output_file <<	"# Vehicle-Id Component-Id Name Value Type" << endl;
 
 	if(VERBOSE)cout << endl;
+	if(VERBOSE)cout.precision(20);
 	for(int i = 0; i < params_with_val.size(); i++){
 		ostringstream oss;
+		oss.precision(20);
 		oss << "1	1	" << params_with_val[i][0] << "	" << params_with_val[i][1] << "	9" << endl;
 		output_file << oss.str();
 		if(VERBOSE)cout << oss.str();
