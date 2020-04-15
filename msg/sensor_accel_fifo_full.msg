@@ -15,6 +15,8 @@ int16 x_raw                       # raw register values of X
 int16 y_raw                       # raw register values of Y
 int16 z_raw                       # raw register values of Z
 
+float32 sensor_scale
+
 float32 d00
 float32 d01
 float32 d02

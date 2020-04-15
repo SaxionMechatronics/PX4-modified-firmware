@@ -68,9 +68,8 @@ private:
 
 	const enum Rotation	_rotation;
 
-	matrix::Vector3f	_calibration_offset{0.0f, 0.0f, 0.0f};
 	matrix::Vector3f	_calibration_scale{1.0f, 1.0f, 1.0f};
-	matrix::SquareMatrix<float, 3> _D;
+	matrix::Vector3f	_calibration_offset{0.0f, 0.0f, 0.0f};
 
 	matrix::Vector3f	_sensitivity{1.0f, 1.0f, 1.0f};
 
