@@ -129,7 +129,7 @@ void ParameterData::FillParameter(vector<vector<string> > csv_dataList, int sens
 			<< (csv_col-1) % 3;
 
 			//parse string to float and back to string to remove whitespaces(dirty solution)
-			vector<string> tmp_entry = {oss.str(), csv_dataList[csv_row][csv_col]};
+			vector<string> tmp_entry = {oss.str(), to_string(stof(csv_dataList[csv_row][csv_col]) * -1)};
 			params_with_val.push_back(tmp_entry);
 		}
 		//adding bias to list
