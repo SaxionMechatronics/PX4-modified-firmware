@@ -472,35 +472,15 @@ void VotedSensorsUpdate::parametersUpdate()
 				(void)sprintf(str, "CAL_MAG%u_ZOFF", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.z_offset));
 
-				(void)sprintf(str, "CAL_MAG%u_D00", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d00));
+				(void)sprintf(str, "CAL_MAG%u_XSCALE", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.x_scale));
 
-				(void)sprintf(str, "CAL_MAG%u_D01", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d01));
+				(void)sprintf(str, "CAL_MAG%u_YSCALE", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.y_scale));
 
-				(void)sprintf(str, "CAL_MAG%u_D02", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d02));
+				(void)sprintf(str, "CAL_MAG%u_ZSCALE", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.z_scale));
 
-				(void)sprintf(str, "CAL_MAG%u_D10", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d10));
-
-				(void)sprintf(str, "CAL_MAG%u_D11", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d11));
-
-				(void)sprintf(str, "CAL_MAG%u_D12", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d12));
-
-				(void)sprintf(str, "CAL_MAG%u_D20", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d20));
-
-				(void)sprintf(str, "CAL_MAG%u_D21", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d21));
-
-				(void)sprintf(str, "CAL_MAG%u_D22", i);
-				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d22));
-
-
-				//TODO dvalues
 				(void)sprintf(str, "CAL_MAG%u_ROT", i);
 				int32_t mag_rot = 0;
 				param_get(param_find(str), &mag_rot);
