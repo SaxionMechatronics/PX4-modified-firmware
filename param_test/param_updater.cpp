@@ -9,11 +9,12 @@
 #include <algorithm>
 #include <sstream>
 #include <boost/algorithm/string.hpp>
+#include <Eigen/Dense>
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 using namespace std;
-
+using namespace Eigen;
 
 
 /*
@@ -105,6 +106,8 @@ void ParameterData::ReadMatlabCSV()
 //choose which parameters to modify
 void ParameterData::FillParameter(vector<vector<string> > csv_dataList, int sensor_on_row, int nr_of_sensors, string param_str)
 {
+	vector<vector<string> > tmp_data_array;
+
 	//creates an vector array per accellerometer and stores them in a vector of vectors
 	for(int csv_row = sensor_on_row + 2; csv_row < sensor_on_row + nr_of_sensors + 2; csv_row++){
 		int sensor_nr;
@@ -129,9 +132,30 @@ void ParameterData::FillParameter(vector<vector<string> > csv_dataList, int sens
 			<< (csv_col-1) % 3;
 
 			//parse string to float and back to string to remove whitespaces(dirty solution)
-			vector<string> tmp_entry = {oss.str(), to_string(stof(csv_dataList[csv_row][csv_col]) * -1)};
-			params_with_val.push_back(tmp_entry);
+			vector<string> tmp_entry = {oss.str(), to_string(stof(csv_dataList[csv_row][csv_col]))};
+			tmp_data_array.push_back(tmp_entry);
 		}
+
+
+		//inverse of matrix
+		float matrix_data[9];
+		for(int i = 0; i  < tmp_data_array.size(); i++){
+			matrix_data[i] = stof(tmp_data_array[i][1]);
+ 		}
+
+		Matrix3f param_matrix{matrix_data};
+		//transpose because row and cols are inverted in cpp
+		param_matrix.transposeInPlace();
+		Matrix3f inverse_matrix;
+
+		inverse_matrix = param_matrix.inverse();
+
+		//filling it back in again
+		for(int i = 0; i < tmp_data_array.size(); i++){
+			tmp_data_array[i][1] = to_string(inverse_matrix(int(floor(i/3)), i%3));
+			params_with_val.push_back(tmp_data_array[i]); //remove soon
+		}
+
 		//adding bias to list
 		ostringstream oss;
 		oss.precision(20);
