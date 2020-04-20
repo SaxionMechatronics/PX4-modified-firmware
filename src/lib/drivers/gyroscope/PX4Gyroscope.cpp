@@ -143,7 +143,7 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 	float z_raw = z;
 
 	// Apply rotation (before scaling)
-	rotate_3f(_rotation, x, y, z);
+	// rotate_3f(_rotation, x, y, z);
 
 	const Vector3f raw{x, y, z};
 
