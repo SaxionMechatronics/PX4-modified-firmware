@@ -156,7 +156,7 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 	}
 
 	// SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
-	const Vector3f val_calibrated{inv(_D) * ((raw * _scale) - _calibration_offset)};
+	const Vector3f val_calibrated{_D * ((raw * _scale) - _calibration_offset)};
 
 	// publish raw data immediately
 	{
@@ -263,7 +263,7 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 
 		// Apply range scale and the calibrating offset/scale
 		// const Vector3f val_calibrated{((Vector3f{x, y, z} * _scale) - _calibration_offset).emult(_calibration_scale)};
-		const Vector3f val_calibrated{inv(_D) * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
+		const Vector3f val_calibrated{_D * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
 
 		sensor_accel_s report;
 
