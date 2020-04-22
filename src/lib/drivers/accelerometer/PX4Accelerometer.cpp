@@ -95,18 +95,12 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
-			_calibration_scale = Vector3f{cal.x_scale, cal.y_scale, cal.z_scale};							//might be obsolete?
-			_misalignment_scale = Vector3f{cal.x_misalign, cal.y_misalign, cal.z_misalign}; 	//might be obsolete?
 
-			float misaling_data[9] = {1, 							0, 							0,
-															 cal.x_misalign, 	1, 							0,
-															 cal.y_misalign, 	cal.z_misalign, 1};
-		  _misalignment_matrix = SquareMatrix<float, 3>{misaling_data};
 
-			float scale_data[9] = {cal.x_scale,	0,					0,
-														0,						cal.y_scale,0,
-														0,						0,					cal.z_misalign};
-		  _scale_matrix = SquareMatrix<float, 3>{scale_data};
+			float misaling_data[9] = {cal.d00, 	cal.d01, 	cal.d02,
+															 	cal.d10, 	cal.d11, 	cal.d12,
+															 	cal.d20, 	cal.d21,	cal.d22};
+			_D = SquareMatrix<float, 3>{misaling_data};
 
 		}
 
@@ -150,7 +144,7 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 	float z_raw = z;
 
 	// Apply rotation (before scaling)
-	rotate_3f(_rotation, x, y, z);
+	// rotate_3f(_rotation, x, y, z);
 
 	const Vector3f raw{x, y, z};
 
@@ -162,12 +156,9 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		}
 	}
 
-	SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
-	const Vector3f new_val_calibrated{inv(D) * ((raw * _scale) - _calibration_offset)};
 
-	// Apply range scale and the calibrating offset/scale
-	const Vector3f val_calibrated{((((raw * _scale) - _calibration_offset).emult(_calibration_scale))).emult(_misalignment_scale)};
-	const Vector3f val_scale_no_cal{((raw * _scale))};
+	// SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
+	const Vector3f val_calibrated{_D * ((raw * _scale) - _calibration_offset)};
 
 	// publish raw data immediately
 	{
@@ -201,19 +192,24 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.y = val_calibrated(1);
 		report.z = val_calibrated(2);
 
-		report.misalgnx = _misalignment_scale(0);
-		report.misalgny = _misalignment_scale(1);
-		report.misalgnz = _misalignment_scale(2);
+		report.d00 = _D(0,0);
+		report.d01 = _D(0,1);
+		report.d02 = _D(0,2);
+		report.d10 = _D(1,0);
+		report.d11 = _D(1,1);
+		report.d12 = _D(1,2);
+		report.d20 = _D(2,0);
+		report.d21 = _D(2,1);
+		report.d22 = _D(2,2);
 
 		report.scale = _scale;
 		report.rotation = _rotation;
 
 		for(int i = 0; i < 3; i++){ //for x y and z
 			report.xyz_calibration_offset[i] = _calibration_offset(i);
-		 	report.xyz_calibration_scale[i] = _calibration_scale(i);
-			report.xyz_scaled_no_cal[i] = val_scale_no_cal(i);
-			// report.xyz_scaled_and_cal[i] = val_calibrated(i);
 		}
+
+
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_fifo_full_pub.publish(report);
@@ -268,7 +264,8 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 		rotate_3f(_rotation, x, y, z);
 
 		// Apply range scale and the calibrating offset/scale
-		const Vector3f val_calibrated{((Vector3f{x, y, z} * _scale) - _calibration_offset).emult(_calibration_scale)};
+		// const Vector3f val_calibrated{((Vector3f{x, y, z} * _scale) - _calibration_offset).emult(_calibration_scale)};
+		const Vector3f val_calibrated{_D * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
 
 		sensor_accel_s report;
 
@@ -327,7 +324,8 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 			const Vector3f offset{_calibration_offset * _integrator_fifo_samples};
 
 			// Apply calibration and scale to seconds
-			Vector3f delta_velocity{((delta_velocity_uncalibrated - offset).emult(_calibration_scale))};
+			// Vector3f delta_velocity{((delta_velocity_uncalibrated - offset).emult(_calibration_scale))};
+			Vector3f delta_velocity{((delta_velocity_uncalibrated - offset))};
 			delta_velocity *= 1e-6f * dt;
 
 			// fill sensor_accel_integrated and publish
@@ -426,8 +424,8 @@ void PX4Accelerometer::print_status()
 {
 	PX4_INFO(ACCEL_BASE_DEVICE_PATH " device instance: %d", _class_device_instance);
 
-	PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
-		 (double)_calibration_scale(2));
-	PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),
-		 (double)_calibration_offset(2));
+	// PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
+	// 	 (double)_calibration_scale(2));
+	// PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),
+	// 	 (double)_calibration_offset(2));
 }
