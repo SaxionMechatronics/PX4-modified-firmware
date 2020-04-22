@@ -156,7 +156,7 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 	}
 
 	// Apply range scale and the calibrating offset/scale
-	const Vector3f val_calibrated{inv(_D) * ((raw * _scale) - _calibration_offset)};
+	const Vector3f val_calibrated{_D * ((raw * _scale) - _calibration_offset)};
 
 	// publish raw data immediately
 	{
@@ -259,7 +259,7 @@ void PX4Gyroscope::updateFIFO(const FIFOSample &sample)
 
 		// publish raw data immediately
 	{
-		const Vector3f val_calibrated{inv(_D) * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
+		const Vector3f val_calibrated{_D * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
 
 		sensor_gyro_s report;
 
