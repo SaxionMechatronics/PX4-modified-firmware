@@ -96,6 +96,7 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
 
+
 			float misaling_data[9] = {cal.d00, 	cal.d01, 	cal.d02,
 															 	cal.d10, 	cal.d11, 	cal.d12,
 															 	cal.d20, 	cal.d21,	cal.d22};
@@ -154,6 +155,7 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 			_integrator_clipping++;
 		}
 	}
+
 
 	// SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
 	const Vector3f val_calibrated{inv(_D) * ((raw * _scale) - _calibration_offset)};

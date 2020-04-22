@@ -102,6 +102,7 @@ private:
 	Integrator		_integrator{4000, false};
 
 	matrix::Vector3f	_calibration_offset{0.f, 0.f, 0.f};
+
 	matrix::SquareMatrix<float, 3> _D;
 
 	matrix::Vector3f _delta_velocity_prev{0.f, 0.f, 0.f};	// delta velocity from the previous IMU measurement

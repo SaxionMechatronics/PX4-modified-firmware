@@ -191,6 +191,7 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 	accel_scale.x_offset = 0.0f;
 	accel_scale.y_offset = 0.0f;
 	accel_scale.z_offset = 0.0f;
+
 	accel_scale.d00 = 1.0f;
 	accel_scale.d01 = 0.0f;
 	accel_scale.d02 = 0.0f;
@@ -201,7 +202,7 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 	accel_scale.d21 = 0.0f;
 	accel_scale.d22 = 1.0f;
 
-	//todo Dvalues
+
 	int res = PX4_OK;
 
 
@@ -356,6 +357,17 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 
 		(void)sprintf(str, "CAL_ACC%u_D22", uorb_index);
 		res = param_set_no_notification(param_find(str), &accel_scale.d22);
+
+
+		(void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
+		param_get(param_find(str), &accel_scale.x_misalign);
+
+		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
+		param_get(param_find(str), &accel_scale.y_misalign);
+
+		(void)sprintf(str, "CAL_ACC%u_ALGN_Z", uorb_index);
+		param_get(param_find(str), &accel_scale.z_misalign);
+
 
 		bool failed = false;
 
