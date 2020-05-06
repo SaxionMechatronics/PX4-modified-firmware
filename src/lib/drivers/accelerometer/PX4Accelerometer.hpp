@@ -43,9 +43,9 @@
 #include <uORB/PublicationQueuedMulti.hpp>
 #include <uORB/topics/sensor_accel.h>
 #include <uORB/topics/sensor_accel_fifo.h>
+#include <uORB/topics/sensor_accel_fifo_full.h>
 #include <uORB/topics/sensor_accel_integrated.h>
 #include <uORB/topics/sensor_accel_status.h>
-#include <uORB/topics/sensor_accel_fifo_full.h>
 
 class PX4Accelerometer : public cdev::CDev
 {
@@ -59,7 +59,8 @@ public:
 
 	void set_device_id(uint32_t device_id) { _device_id = device_id; }
 	void set_device_type(uint8_t devtype);
-	void set_error_count(uint64_t error_count) { _error_count += error_count; }
+	void set_error_count(uint64_t error_count) { _error_count = error_count; }
+	void increase_error_count() { _error_count++; }
 	void set_range(float range) { _range = range; UpdateClipLimit(); }
 	void set_scale(float scale) { _scale = scale; UpdateClipLimit(); }
 	void set_temperature(float temperature) { _temperature = temperature; }
@@ -74,9 +75,9 @@ public:
 		uint8_t samples; // number of samples
 		float dt; // in microseconds
 
-		int16_t x[16];
-		int16_t y[16];
-		int16_t z[16];
+		int16_t x[32];
+		int16_t y[32];
+		int16_t z[32];
 	};
 	static_assert(sizeof(FIFOSample::x) == sizeof(sensor_accel_fifo_s::x), "FIFOSample.x invalid size");
 	static_assert(sizeof(FIFOSample::y) == sizeof(sensor_accel_fifo_s::y), "FIFOSample.y invalid size");
@@ -92,8 +93,8 @@ private:
 	void UpdateVibrationMetrics(const matrix::Vector3f &delta_velocity);
 
 	uORB::PublicationQueuedMulti<sensor_accel_s>      _sensor_pub;
-	uORB::PublicationMulti<sensor_accel_fifo_full_s>	_sensor_fifo_full_pub;
 	uORB::PublicationMulti<sensor_accel_fifo_s>       _sensor_fifo_pub;
+	uORB::PublicationMulti<sensor_accel_fifo_full_s>	_sensor_fifo_full_pub;
 	uORB::PublicationMulti<sensor_accel_integrated_s> _sensor_integrated_pub;
 	uORB::PublicationMulti<sensor_accel_status_s>     _sensor_status_pub;
 
@@ -122,17 +123,16 @@ private:
 
 	uint64_t		_error_count{0};
 
-	uint32_t		_clipping[3] {};
+	uint32_t		_clipping_total[3] {};
 
 	uint16_t		_update_rate{1000};
 
 	// integrator
 	hrt_abstime		_timestamp_sample_prev{0};
 	matrix::Vector3f	_integration_raw{};
+	matrix::Vector3f	_integrator_clipping{};
 	int16_t			_last_sample[3] {};
 	uint8_t			_integrator_reset_samples{4};
 	uint8_t			_integrator_samples{0};
 	uint8_t			_integrator_fifo_samples{0};
-	uint8_t			_integrator_clipping{0};
-
 };

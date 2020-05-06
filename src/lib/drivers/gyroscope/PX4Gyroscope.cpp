@@ -150,8 +150,8 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 	// Clipping (check unscaled raw values)
 	for (int i = 0; i < 3; i++) {
 		if (fabsf(raw(i)) > _clip_limit) {
-			_clipping[i]++;
-			_integrator_clipping++;
+			_clipping_total[i]++;
+			_integrator_clipping(i)++;
 		}
 	}
 
@@ -165,11 +165,9 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 		report.timestamp_sample = timestamp_sample;
 		report.device_id = _device_id;
 		report.temperature = _temperature;
-
 		report.x = val_calibrated(0);
 		report.y = val_calibrated(1);
 		report.z = val_calibrated(2);
-
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_pub.publish(report);
@@ -228,7 +226,11 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 		delta_angle.copyTo(report.delta_angle);
 		report.dt = integral_dt;
 		report.samples = _integrator_samples;
-		report.clip_count = _integrator_clipping;
+
+		for (int i = 0; i < 3; i++) {
+			report.clip_counter[i] = fabsf(roundf(_integrator_clipping(i)));
+		}
+
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_integrated_pub.publish(report);
@@ -249,17 +251,18 @@ void PX4Gyroscope::updateFIFO(const FIFOSample &sample)
 	const uint8_t N = sample.samples;
 	const float dt = sample.dt;
 
-	// average
-	float x = (float)sum(sample.x, N) / (float)N;
-	float y = (float)sum(sample.y, N) / (float)N;
-	float z = (float)sum(sample.z, N) / (float)N;
-
-	// Apply rotation (before scaling)
-	rotate_3f(_rotation, x, y, z);
-
-		// publish raw data immediately
+	// publish raw data immediately
 	{
-		const Vector3f val_calibrated{_D * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
+		// average
+		float x = (float)sum(sample.x, N) / (float)N;
+		float y = (float)sum(sample.y, N) / (float)N;
+		float z = (float)sum(sample.z, N) / (float)N;
+
+		// Apply rotation (before scaling)
+		rotate_3f(_rotation, x, y, z);
+
+		// Apply range scale and the calibration offset
+		const Vector3f val_calibrated{(Vector3f{x, y, z} * _scale) - _calibration_offset};
 
 		sensor_gyro_s report;
 
@@ -274,16 +277,19 @@ void PX4Gyroscope::updateFIFO(const FIFOSample &sample)
 		_sensor_pub.publish(report);
 	}
 
+
 	// clipping
 	unsigned clip_count_x = clipping(sample.x, _clip_limit, N);
 	unsigned clip_count_y = clipping(sample.y, _clip_limit, N);
 	unsigned clip_count_z = clipping(sample.z, _clip_limit, N);
 
-	_clipping[0] += clip_count_x;
-	_clipping[1] += clip_count_y;
-	_clipping[2] += clip_count_z;
+	_clipping_total[0] += clip_count_x;
+	_clipping_total[1] += clip_count_y;
+	_clipping_total[2] += clip_count_z;
 
-	_integrator_clipping += clip_count_x + clip_count_y + clip_count_z;
+	_integrator_clipping(0) += clip_count_x;
+	_integrator_clipping(1) += clip_count_y;
+	_integrator_clipping(2) += clip_count_z;
 
 	// integrated data (INS)
 	{
@@ -329,7 +335,12 @@ void PX4Gyroscope::updateFIFO(const FIFOSample &sample)
 			delta_angle.copyTo(report.delta_angle);
 			report.dt = _integrator_fifo_samples * dt; // time span in microseconds
 			report.samples = _integrator_fifo_samples;
-			report.clip_count = _integrator_clipping;
+
+			const Vector3f clipping{_rotation_dcm * _integrator_clipping};
+
+			for (int i = 0; i < 3; i++) {
+				report.clip_counter[i] = fabsf(roundf(clipping(i)));
+			}
 
 			report.timestamp = hrt_absolute_time();
 			_sensor_integrated_pub.publish(report);
@@ -378,9 +389,9 @@ void PX4Gyroscope::PublishStatus()
 		status.temperature = _temperature;
 		status.vibration_metric = _vibration_metric;
 		status.coning_vibration = _coning_vibration;
-		status.clipping[0] = _clipping[0];
-		status.clipping[1] = _clipping[1];
-		status.clipping[2] = _clipping[2];
+		status.clipping[0] = _clipping_total[0];
+		status.clipping[1] = _clipping_total[1];
+		status.clipping[2] = _clipping_total[2];
 		status.timestamp = hrt_absolute_time();
 		_sensor_status_pub.publish(status);
 
@@ -393,7 +404,7 @@ void PX4Gyroscope::ResetIntegrator()
 	_integrator_samples = 0;
 	_integrator_fifo_samples = 0;
 	_integration_raw.zero();
-	_integrator_clipping = 0;
+	_integrator_clipping.zero();
 
 	_timestamp_sample_prev = 0;
 }

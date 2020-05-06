@@ -89,11 +89,12 @@ public:
 	};
 
 	static bool preArmCheck(orb_advert_t *mavlink_log_pub, const vehicle_status_flags_s &status_flags,
-				const safety_s &safety, const arm_requirements_t &arm_requirements, const vehicle_status_s &status);
+				const safety_s &safety, const arm_requirements_t &arm_requirements, vehicle_status_s &status,
+				bool report_fail = true);
 
 private:
-	static bool magnometerCheck(orb_advert_t *mavlink_log_pub, vehicle_status_s &status, const uint8_t instance,
-				    const bool optional, int32_t &device_id, const bool report_fail);
+	static bool magnetometerCheck(orb_advert_t *mavlink_log_pub, vehicle_status_s &status, const uint8_t instance,
+				      const bool optional, int32_t &device_id, const bool report_fail);
 	static bool magConsistencyCheck(orb_advert_t *mavlink_log_pub, vehicle_status_s &status, const bool report_status);
 	static bool accelerometerCheck(orb_advert_t *mavlink_log_pub, vehicle_status_s &status, const uint8_t instance,
 				       const bool optional, const bool dynamic, int32_t &device_id, const bool report_fail);

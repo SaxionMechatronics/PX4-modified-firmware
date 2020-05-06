@@ -42,6 +42,8 @@
 #include "tiltrotor.h"
 #include "vtol_att_control_main.h"
 
+using namespace matrix;
+
 #define ARSP_YAW_CTRL_DISABLE 7.0f	// airspeed at which we stop controlling yaw during a front transition
 
 Tiltrotor::Tiltrotor(VtolAttitudeControl *attc) :
@@ -224,6 +226,11 @@ void Tiltrotor::update_transition_state()
 {
 	VtolType::update_transition_state();
 
+	// copy virtual attitude setpoint to real attitude setpoint (we use multicopter att sp)
+	memcpy(_v_att_sp, _mc_virtual_att_sp, sizeof(vehicle_attitude_setpoint_s));
+
+	_v_att_sp->roll_body = _fw_virtual_att_sp->roll_body;
+
 	float time_since_trans_start = (float)(hrt_absolute_time() - _vtol_schedule.transition_start) * 1e-6f;
 
 	if (!_flag_was_in_trans_mode) {
@@ -232,7 +239,7 @@ void Tiltrotor::update_transition_state()
 	}
 
 	if (_vtol_schedule.flight_mode == vtol_mode::TRANSITION_FRONT_P1) {
-		// for the first part of the transition the rear rotors are enabled
+		// for the first part of the transition all rotors are enabled
 		if (_motor_state != motor_state::ENABLED) {
 			_motor_state = set_motor_state(_motor_state, motor_state::ENABLED);
 		}
@@ -280,17 +287,18 @@ void Tiltrotor::update_transition_state()
 		_mc_roll_weight = 0.0f;
 		_mc_yaw_weight = 0.0f;
 
-		// ramp down rear motors (setting MAX_PWM down scales the given output into the new range)
-		int rear_value = (1.0f - time_since_trans_start / _params_tiltrotor.front_trans_dur_p2) *
-				 (PWM_DEFAULT_MAX - PWM_DEFAULT_MIN) + PWM_DEFAULT_MIN;
+		// ramp down motors not used in fixed-wing flight (setting MAX_PWM down scales the given output into the new range)
+		int ramp_down_value = (1.0f - time_since_trans_start / _params_tiltrotor.front_trans_dur_p2) *
+				      (PWM_DEFAULT_MAX - PWM_DEFAULT_MIN) + PWM_DEFAULT_MIN;
 
 
-		_motor_state = set_motor_state(_motor_state, motor_state::VALUE, rear_value);
+		_motor_state = set_motor_state(_motor_state, motor_state::VALUE, ramp_down_value);
 
 
 		_thrust_transition = -_mc_virtual_att_sp->thrust_body[2];
 
 	} else if (_vtol_schedule.flight_mode == vtol_mode::TRANSITION_BACK) {
+		// turn on all MC motors
 		if (_motor_state != motor_state::ENABLED) {
 			_motor_state = set_motor_state(_motor_state, motor_state::ENABLED);
 		}
@@ -309,6 +317,9 @@ void Tiltrotor::update_transition_state()
 
 		_mc_yaw_weight = 1.0f;
 
+		// control backtransition deceleration using pitch.
+		_v_att_sp->pitch_body = update_and_get_backtransition_pitch_sp();
+
 		// while we quickly rotate back the motors keep throttle at idle
 		if (time_since_trans_start < 1.0f) {
 			_mc_throttle_weight = 0.0f;
@@ -323,12 +334,15 @@ void Tiltrotor::update_transition_state()
 		}
 	}
 
+	const Quatf q_sp(Eulerf(_v_att_sp->roll_body, _v_att_sp->pitch_body, _v_att_sp->yaw_body));
+	q_sp.copyTo(_v_att_sp->q_d);
+
+
 	_mc_roll_weight = math::constrain(_mc_roll_weight, 0.0f, 1.0f);
 	_mc_yaw_weight = math::constrain(_mc_yaw_weight, 0.0f, 1.0f);
 	_mc_throttle_weight = math::constrain(_mc_throttle_weight, 0.0f, 1.0f);
 
-	// copy virtual attitude setpoint to real attitude setpoint (we use multicopter att sp)
-	memcpy(_v_att_sp, _mc_virtual_att_sp, sizeof(vehicle_attitude_setpoint_s));
+
 }
 
 void Tiltrotor::waiting_on_tecs()

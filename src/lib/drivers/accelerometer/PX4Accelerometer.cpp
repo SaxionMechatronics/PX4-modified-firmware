@@ -67,8 +67,8 @@ static constexpr unsigned clipping(const int16_t samples[16], int16_t clip_limit
 PX4Accelerometer::PX4Accelerometer(uint32_t device_id, uint8_t priority, enum Rotation rotation) :
 	CDev(nullptr),
 	_sensor_pub{ORB_ID(sensor_accel), priority},
-	_sensor_fifo_full_pub{ORB_ID(sensor_accel_fifo_full), priority},
 	_sensor_fifo_pub{ORB_ID(sensor_accel_fifo), priority},
+	_sensor_fifo_full_pub{ORB_ID(sensor_accel_fifo_full), priority},
 	_sensor_integrated_pub{ORB_ID(sensor_accel_integrated), priority},
 	_sensor_status_pub{ORB_ID(sensor_accel_status), priority},
 	_device_id{device_id},
@@ -93,7 +93,6 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 			accel_calibration_s cal{};
 			memcpy(&cal, (accel_calibration_s *) arg, sizeof(cal));
 
-
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
 
 
@@ -101,7 +100,6 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 															 	cal.d10, 	cal.d11, 	cal.d12,
 															 	cal.d20, 	cal.d21,	cal.d22};
 			_D = SquareMatrix<float, 3>{misaling_data};
-
 		}
 
 		return PX4_OK;
@@ -138,7 +136,6 @@ void PX4Accelerometer::set_update_rate(uint16_t rate)
 
 void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, float z)
 {
-
 	float x_raw = x;
 	float y_raw = y;
 	float z_raw = z;
@@ -151,13 +148,12 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 	// Clipping (check unscaled raw values)
 	for (int i = 0; i < 3; i++) {
 		if (fabsf(raw(i)) > _clip_limit) {
-			_clipping[i]++;
-			_integrator_clipping++;
+			_clipping_total[i]++;
+			_integrator_clipping(i)++;
 		}
 	}
 
-
-	// SquareMatrix<float, 3> D = _misalignment_matrix * _scale_matrix;
+	// Apply range scale and the calibrating offset/scale
 	const Vector3f val_calibrated{_D * ((raw * _scale) - _calibration_offset)};
 
 	// publish raw data immediately
@@ -170,51 +166,46 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.x = val_calibrated(0);
 		report.y = val_calibrated(1);
 		report.z = val_calibrated(2);
-
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_pub.publish(report);
 	}
 
-	// publish alldata immediately
 	{
-		sensor_accel_fifo_full_s report{};
+		sensor_accel_fifo_full_s full_report;
 
-		report.timestamp_sample = timestamp_sample;
-		report.device_id = _device_id;
-		report.temperature = _temperature;
+		full_report.timestamp_sample = timestamp_sample;
+		full_report.device_id = _device_id;
+		full_report.temperature = _temperature;
 
-		report.x_raw = x_raw;
-		report.y_raw = y_raw;
-		report.z_raw = z_raw;
+		full_report.x_raw = x_raw;
+		full_report.y_raw = y_raw;
+		full_report.z_raw = z_raw;
 
-		report.x = val_calibrated(0);
-		report.y = val_calibrated(1);
-		report.z = val_calibrated(2);
+		full_report.x = val_calibrated(0);
+		full_report.y = val_calibrated(1);
+		full_report.z = val_calibrated(2);
 
-		report.d00 = _D(0,0);
-		report.d01 = _D(0,1);
-		report.d02 = _D(0,2);
-		report.d10 = _D(1,0);
-		report.d11 = _D(1,1);
-		report.d12 = _D(1,2);
-		report.d20 = _D(2,0);
-		report.d21 = _D(2,1);
-		report.d22 = _D(2,2);
+		full_report.d00 = _D(0,0);
+		full_report.d01 = _D(0,1);
+		full_report.d02 = _D(0,2);
+		full_report.d10 = _D(1,0);
+		full_report.d11 = _D(1,1);
+		full_report.d12 = _D(1,2);
+		full_report.d20 = _D(2,0);
+		full_report.d21 = _D(2,1);
+		full_report.d22 = _D(2,2);
 
-		report.scale = _scale;
-		report.rotation = _rotation;
+		full_report.scale = _scale;
+		full_report.rotation = _rotation;
 
 		for(int i = 0; i < 3; i++){ //for x y and z
-			report.xyz_calibration_offset[i] = _calibration_offset(i);
+			full_report.xyz_calibration_offset[i] = _calibration_offset(i);
 		}
 
-
-		report.timestamp = hrt_absolute_time();
-
-		_sensor_fifo_full_pub.publish(report);
+		full_report.timestamp = hrt_absolute_time();
+		_sensor_fifo_full_pub.publish(full_report);
 	}
-
 	// Integrated values
 	Vector3f delta_velocity;
 	uint32_t integral_dt = 0;
@@ -232,7 +223,11 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		delta_velocity.copyTo(report.delta_velocity);
 		report.dt = integral_dt;
 		report.samples = _integrator_samples;
-		report.clip_count = _integrator_clipping;
+
+		for (int i = 0; i < 3; i++) {
+			report.clip_counter[i] = fabsf(roundf(_integrator_clipping(i)));
+		}
+
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_integrated_pub.publish(report);
@@ -264,8 +259,7 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 		rotate_3f(_rotation, x, y, z);
 
 		// Apply range scale and the calibrating offset/scale
-		// const Vector3f val_calibrated{((Vector3f{x, y, z} * _scale) - _calibration_offset).emult(_calibration_scale)};
-		const Vector3f val_calibrated{_D * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
+	const Vector3f val_calibrated{_D * ((Vector3f{x, y, z} * _scale) - _calibration_offset)};
 
 		sensor_accel_s report;
 
@@ -286,11 +280,13 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 	unsigned clip_count_y = clipping(sample.y, _clip_limit, N);
 	unsigned clip_count_z = clipping(sample.z, _clip_limit, N);
 
-	_clipping[0] += clip_count_x;
-	_clipping[1] += clip_count_y;
-	_clipping[2] += clip_count_z;
+	_clipping_total[0] += clip_count_x;
+	_clipping_total[1] += clip_count_y;
+	_clipping_total[2] += clip_count_z;
 
-	_integrator_clipping += clip_count_x + clip_count_y + clip_count_z;
+	_integrator_clipping(0) += clip_count_x;
+	_integrator_clipping(1) += clip_count_y;
+	_integrator_clipping(2) += clip_count_z;
 
 	// integrated data (INS)
 	{
@@ -324,7 +320,6 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 			const Vector3f offset{_calibration_offset * _integrator_fifo_samples};
 
 			// Apply calibration and scale to seconds
-			// Vector3f delta_velocity{((delta_velocity_uncalibrated - offset).emult(_calibration_scale))};
 			Vector3f delta_velocity{((delta_velocity_uncalibrated - offset))};
 			delta_velocity *= 1e-6f * dt;
 
@@ -337,7 +332,12 @@ void PX4Accelerometer::updateFIFO(const FIFOSample &sample)
 			delta_velocity.copyTo(report.delta_velocity);
 			report.dt = _integrator_fifo_samples * dt; // time span in microseconds
 			report.samples = _integrator_fifo_samples;
-			report.clip_count = _integrator_clipping;
+
+			const Vector3f clipping{_rotation_dcm * _integrator_clipping};
+
+			for (int i = 0; i < 3; i++) {
+				report.clip_counter[i] = fabsf(roundf(clipping(i)));
+			}
 
 			report.timestamp = hrt_absolute_time();
 			_sensor_integrated_pub.publish(report);
@@ -385,9 +385,9 @@ void PX4Accelerometer::PublishStatus()
 		status.measure_rate_hz = _update_rate;
 		status.temperature = _temperature;
 		status.vibration_metric = _vibration_metric;
-		status.clipping[0] = _clipping[0];
-		status.clipping[1] = _clipping[1];
-		status.clipping[2] = _clipping[2];
+		status.clipping[0] = _clipping_total[0];
+		status.clipping[1] = _clipping_total[1];
+		status.clipping[2] = _clipping_total[2];
 		status.timestamp = hrt_absolute_time();
 		_sensor_status_pub.publish(status);
 
@@ -400,7 +400,7 @@ void PX4Accelerometer::ResetIntegrator()
 	_integrator_samples = 0;
 	_integrator_fifo_samples = 0;
 	_integration_raw.zero();
-	_integrator_clipping = 0;
+	_integrator_clipping.zero();
 
 	_timestamp_sample_prev = 0;
 }
@@ -422,8 +422,8 @@ void PX4Accelerometer::UpdateVibrationMetrics(const Vector3f &delta_velocity)
 
 void PX4Accelerometer::print_status()
 {
-	PX4_INFO(ACCEL_BASE_DEVICE_PATH " device instance: %d", _class_device_instance);
-
+	// PX4_INFO(ACCEL_BASE_DEVICE_PATH " device instance: %d", _class_device_instance);
+	//
 	// PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
 	// 	 (double)_calibration_scale(2));
 	// PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),

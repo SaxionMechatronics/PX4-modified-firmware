@@ -39,14 +39,13 @@
 PX4Magnetometer::PX4Magnetometer(uint32_t device_id, uint8_t priority, enum Rotation rotation) :
 	CDev(nullptr),
 	_sensor_mag_pub{ORB_ID(sensor_mag), priority},
-	_sensor_mag_full_pub{ORB_ID(sensor_mag_full), priority},
 	_rotation{rotation}
 {
 	_class_device_instance = register_class_devname(MAG_BASE_DEVICE_PATH);
 
 	_sensor_mag_pub.get().device_id = device_id;
 	_sensor_mag_pub.get().scaling = 1.0f;
-
+	_sensor_mag_pub.get().temperature = NAN;
 }
 
 PX4Magnetometer::~PX4Magnetometer()
@@ -84,6 +83,9 @@ int PX4Magnetometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 
 		return 0;
 
+	case MAGIOCGEXTERNAL:
+		return _sensor_mag_pub.get().is_external;
+
 	case DEVIOCGDEVICEID:
 		return _sensor_mag_pub.get().device_id;
 
@@ -107,60 +109,27 @@ void PX4Magnetometer::set_device_type(uint8_t devtype)
 
 void PX4Magnetometer::update(hrt_abstime timestamp_sample, float x, float y, float z)
 {
-	float x_raw = x;
-	float y_raw = y;
-	float z_raw = z;
+	sensor_mag_s &report = _sensor_mag_pub.get();
+	report.timestamp = timestamp_sample;
 
 	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
 
-	{
-		sensor_mag_s &report = _sensor_mag_pub.get();
-		report.timestamp = timestamp_sample;
+	const matrix::Vector3f raw_f{x, y, z};
 
-		const matrix::Vector3f raw_f{x, y, z};
+	// Apply range scale and the calibrating offset/scale
+	const matrix::Vector3f val_calibrated{(((raw_f.emult(_sensitivity) * report.scaling) - _calibration_offset).emult(_calibration_scale))};
 
-		// Apply range scale and the calibrating offset/scale
-		const matrix::Vector3f val_calibrated{(((raw_f.emult(_sensitivity) * report.scaling) - _calibration_offset).emult(_calibration_scale))};
+	// Raw values (ADC units 0 - 65535)
+	report.x_raw = x;
+	report.y_raw = y;
+	report.z_raw = z;
 
-		// Raw values (ADC units 0 - 65535)
-		report.x_raw = x;
-		report.y_raw = y;
-		report.z_raw = z;
+	report.x = val_calibrated(0);
+	report.y = val_calibrated(1);
+	report.z = val_calibrated(2);
 
-		report.x = val_calibrated(0);
-		report.y = val_calibrated(1);
-		report.z = val_calibrated(2);
-
-		_sensor_mag_pub.update();
-	}
-
-	{
-		sensor_mag_full_s report{};
-		sensor_mag_s &tmp_r = _sensor_mag_pub.get();
-		report.timestamp = timestamp_sample;
-		report.scaling = tmp_r.scaling;
-
-		const matrix::Vector3f raw_f{x, y, z};
-
-		// Apply range scale and the calibrating offset/scale
-		const matrix::Vector3f val_calibrated{(((raw_f.emult(_sensitivity) * tmp_r.scaling) - _calibration_offset).emult(_calibration_scale))};
-
-		// Raw values (ADC units 0 - 65535)
-		report.x_raw = x_raw;
-		report.y_raw = y_raw;
-		report.z_raw = z_raw;
-
-		for(int i = 0; i < 3; i++){ //for x y and z
-			report.xyz_calibration_offset[i] = _calibration_offset(i);
-			report.xyz_calibration_scale[i] = _calibration_scale(i);
-			report.sensitivity[i] = _sensitivity(i);
-			report.xyz_scaled_and_cal[i] = val_calibrated(i);
-		}
-
-		_sensor_mag_full_pub.update(report);
-	}
-
+	_sensor_mag_pub.update();
 }
 
 void PX4Magnetometer::print_status()

@@ -303,7 +303,7 @@ private:
 	/**
 	 * Trampoline to the worker task
 	 */
-	static void		task_main_trampoline(int argc, char *argv[]);
+	static int		task_main_trampoline(int argc, char *argv[]);
 
 	/**
 	 * worker task
@@ -785,6 +785,7 @@ PX4IO::init()
 		/* send command to arm system via command API */
 		vcmd.timestamp = hrt_absolute_time();
 		vcmd.param1 = 1.0f; /* request arming */
+		vcmd.param3 = 1234.f; /* mark the command coming from IO (for in-air restoring) */
 		vcmd.command = vehicle_command_s::VEHICLE_CMD_COMPONENT_ARM_DISARM;
 
 		/* send command once */
@@ -881,7 +882,7 @@ PX4IO::init()
 				   SCHED_DEFAULT,
 				   SCHED_PRIORITY_ACTUATOR_OUTPUTS,
 				   1500,
-				   (main_t)&PX4IO::task_main_trampoline,
+				   (px4_main_t)&PX4IO::task_main_trampoline,
 				   nullptr);
 
 	if (_task < 0) {
@@ -892,10 +893,11 @@ PX4IO::init()
 	return OK;
 }
 
-void
+int
 PX4IO::task_main_trampoline(int argc, char *argv[])
 {
 	g_dev->task_main();
+	return 0;
 }
 
 void

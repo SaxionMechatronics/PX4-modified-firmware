@@ -165,34 +165,46 @@ int do_mag_calibration(orb_advert_t *mavlink_log_pub)
 #else
 		(void)sprintf(str, "CAL_MAG%u_XOFF", cur_mag);
 		result = param_set_no_notification(param_find(str), &mscale_null.x_offset);
+
 		if (result != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
 		}
+
 		(void)sprintf(str, "CAL_MAG%u_YOFF", cur_mag);
 		result = param_set_no_notification(param_find(str), &mscale_null.y_offset);
+
 		if (result != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
 		}
+
 		(void)sprintf(str, "CAL_MAG%u_ZOFF", cur_mag);
 		result = param_set_no_notification(param_find(str), &mscale_null.z_offset);
+
 		if (result != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
 		}
+
 		(void)sprintf(str, "CAL_MAG%u_XSCALE", cur_mag);
 		result = param_set_no_notification(param_find(str), &mscale_null.x_scale);
+
 		if (result != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
 		}
+
 		(void)sprintf(str, "CAL_MAG%u_YSCALE", cur_mag);
 		result = param_set_no_notification(param_find(str), &mscale_null.y_scale);
+
 		if (result != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
 		}
+
 		(void)sprintf(str, "CAL_MAG%u_ZSCALE", cur_mag);
 		result = param_set_no_notification(param_find(str), &mscale_null.z_scale);
+
 		if (result != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
 		}
+
 #endif
 
 		param_notify_changes();
@@ -611,9 +623,11 @@ calibrate_return mag_calibrate_all(orb_advert_t *mavlink_log_pub, int32_t cal_ma
 				}
 
 #else
+
 				// For the DriverFramework drivers, we fill device ID (this is the first time) by copying one report.
 				device_ids[cur_mag] = report.device_id;
 				found_cur_mag = true;
+
 #endif
 			}
 

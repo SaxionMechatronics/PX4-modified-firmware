@@ -43,9 +43,10 @@
 #include <uORB/PublicationQueuedMulti.hpp>
 #include <uORB/topics/sensor_gyro.h>
 #include <uORB/topics/sensor_gyro_fifo.h>
+#include <uORB/topics/sensor_gyro_fifo_full.h>
 #include <uORB/topics/sensor_gyro_integrated.h>
 #include <uORB/topics/sensor_gyro_status.h>
-#include <uORB/topics/sensor_gyro_fifo_full.h>
+
 
 class PX4Gyroscope : public cdev::CDev, public ModuleParams
 {
@@ -61,7 +62,8 @@ public:
 
 	void set_device_id(uint32_t device_id) { _device_id = device_id; }
 	void set_device_type(uint8_t devtype);
-	void set_error_count(uint64_t error_count) { _error_count += error_count; }
+	void set_error_count(uint64_t error_count) { _error_count = error_count; }
+	void increase_error_count() { _error_count++; }
 	void set_range(float range) { _range = range; UpdateClipLimit(); }
 	void set_scale(float scale) { _scale = scale; UpdateClipLimit(); }
 	void set_temperature(float temperature) { _temperature = temperature; }
@@ -106,7 +108,6 @@ private:
 	matrix::Vector3f	_calibration_offset{0.f, 0.f, 0.f};
 	matrix::SquareMatrix<float, 3> _D;
 
-
 	matrix::Vector3f _delta_angle_prev{0.f, 0.f, 0.f};	// delta angle from the previous IMU measurement
 	float _vibration_metric{0.f};	// high frequency vibration level in the IMU delta angle data (rad)
 	float _coning_vibration{0.f};	// Level of coning vibration in the IMU delta angles (rad^2)
@@ -125,18 +126,18 @@ private:
 
 	uint64_t		_error_count{0};
 
-	uint32_t		_clipping[3] {};
+	uint32_t		_clipping_total[3] {};
 
 	uint16_t		_update_rate{1000};
 
 	// integrator
 	hrt_abstime		_timestamp_sample_prev{0};
 	matrix::Vector3f	_integration_raw{};
+	matrix::Vector3f	_integrator_clipping{};
 	int16_t			_last_sample[3] {};
 	uint8_t			_integrator_reset_samples{4};
 	uint8_t			_integrator_samples{0};
 	uint8_t			_integrator_fifo_samples{0};
-	uint8_t			_integrator_clipping{0};
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::IMU_GYRO_RATEMAX>) _param_imu_gyro_rate_max

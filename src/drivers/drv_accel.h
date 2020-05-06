@@ -65,7 +65,6 @@ struct accel_calibration_s {
 		float d20;
 		float d21;
 		float d22;
-
 };
 /*
  * ioctl() definitions
@@ -73,12 +72,6 @@ struct accel_calibration_s {
  * Accelerometer drivers also implement the generic sensor driver
  * interfaces from drv_sensor.h
  */
- /*
-  * ioctl() definitions
-  *
-  * Accelerometer drivers also implement the generic sensor driver
-  * interfaces from drv_sensor.h
-  */
 
 #define _ACCELIOCBASE		(0x2100)
 #define _ACCELIOC(_n)		(_PX4_IOC(_ACCELIOCBASE, _n))

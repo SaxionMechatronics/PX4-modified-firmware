@@ -40,7 +40,6 @@
 #include <uORB/uORB.h>
 #include <uORB/PublicationMulti.hpp>
 #include <uORB/topics/sensor_mag.h>
-#include <uORB/topics/sensor_mag_full.h>
 
 class PX4Magnetometer : public cdev::CDev
 {
@@ -51,8 +50,11 @@ public:
 
 	int	ioctl(cdev::file_t *filp, int cmd, unsigned long arg) override;
 
+	bool external() { return _sensor_mag_pub.get().is_external; }
+
 	void set_device_type(uint8_t devtype);
 	void set_error_count(uint64_t error_count) { _sensor_mag_pub.get().error_count = error_count; }
+	void increase_error_count() { _sensor_mag_pub.get().error_count++; }
 	void set_scale(float scale) { _sensor_mag_pub.get().scaling = scale; }
 	void set_temperature(float temperature) { _sensor_mag_pub.get().temperature = temperature; }
 	void set_external(bool external) { _sensor_mag_pub.get().is_external = external; }
@@ -60,11 +62,13 @@ public:
 
 	void update(hrt_abstime timestamp_sample, float x, float y, float z);
 
+	int get_class_instance() { return _class_device_instance; };
+
 	void print_status();
 
 private:
+
 	uORB::PublicationMultiData<sensor_mag_s>	_sensor_mag_pub;
-	uORB::PublicationMultiData<sensor_mag_full_s>	_sensor_mag_full_pub;
 
 	const enum Rotation	_rotation;
 

@@ -358,17 +358,6 @@ int do_accel_calibration(orb_advert_t *mavlink_log_pub)
 		(void)sprintf(str, "CAL_ACC%u_D22", uorb_index);
 		res = param_set_no_notification(param_find(str), &accel_scale.d22);
 
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_X", uorb_index);
-		param_get(param_find(str), &accel_scale.x_misalign);
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_Y", uorb_index);
-		param_get(param_find(str), &accel_scale.y_misalign);
-
-		(void)sprintf(str, "CAL_ACC%u_ALGN_Z", uorb_index);
-		param_get(param_find(str), &accel_scale.z_misalign);
-
-
 		bool failed = false;
 
 		failed = failed || (PX4_OK != param_set_no_notification(param_find("CAL_ACC_PRIME"), &(device_id_primary)));
