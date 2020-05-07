@@ -538,6 +538,7 @@ int IST8310::collect()
 	xraw_f = report.y;
 	yraw_f = report.x;
 	zraw_f = report.z;
+	
 
 	_px4_mag.update(timestamp_sample, xraw_f, yraw_f, zraw_f);
 

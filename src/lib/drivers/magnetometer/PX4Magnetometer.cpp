@@ -36,9 +36,12 @@
 
 #include <lib/drivers/device/Device.hpp>
 
+using matrix::Vector3f;
+
 PX4Magnetometer::PX4Magnetometer(uint32_t device_id, uint8_t priority, enum Rotation rotation) :
 	CDev(nullptr),
 	_sensor_mag_pub{ORB_ID(sensor_mag), priority},
+	_sensor_mag_full_pub{ORB_ID(sensor_mag_full), priority},
 	_rotation{rotation}
 {
 	_class_device_instance = register_class_devname(MAG_BASE_DEVICE_PATH);
@@ -64,7 +67,13 @@ int PX4Magnetometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 			memcpy(&cal, (mag_calibration_s *) arg, sizeof(cal));
 
 			_calibration_offset = matrix::Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
-			_calibration_scale = matrix::Vector3f{cal.x_scale, cal.y_scale, cal.z_scale};
+
+			float misalgn_data[9] = {	cal.d00, 	cal.d01, 	cal.d02,
+																cal.d10,	cal.d11,	cal.d12,
+																cal.d20,	cal.d21,	cal.d22 };
+
+			_D = matrix::SquareMatrix<float, 3>{misalgn_data};
+
 		}
 
 		return PX4_OK;
@@ -75,9 +84,7 @@ int PX4Magnetometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 			cal.x_offset = _calibration_offset(0);
 			cal.y_offset = _calibration_offset(1);
 			cal.z_offset = _calibration_offset(2);
-			cal.x_scale = _calibration_scale(0);
-			cal.y_scale = _calibration_scale(1);
-			cal.z_scale = _calibration_scale(2);
+
 			memcpy((mag_calibration_s *)arg, &cal, sizeof(cal));
 		}
 
@@ -109,35 +116,75 @@ void PX4Magnetometer::set_device_type(uint8_t devtype)
 
 void PX4Magnetometer::update(hrt_abstime timestamp_sample, float x, float y, float z)
 {
-	sensor_mag_s &report = _sensor_mag_pub.get();
-	report.timestamp = timestamp_sample;
 
-	// Apply rotation (before scaling)
-	rotate_3f(_rotation, x, y, z);
+		sensor_mag_s &report = _sensor_mag_pub.get();
+		report.timestamp = timestamp_sample;
 
-	const matrix::Vector3f raw_f{x, y, z};
+		// Apply rotation (before scaling)
+		rotate_3f(_rotation, x, y, z);
 
-	// Apply range scale and the calibrating offset/scale
-	const matrix::Vector3f val_calibrated{(((raw_f.emult(_sensitivity) * report.scaling) - _calibration_offset).emult(_calibration_scale))};
+		const matrix::Vector3f raw_f{x, y, z};
 
-	// Raw values (ADC units 0 - 65535)
-	report.x_raw = x;
-	report.y_raw = y;
-	report.z_raw = z;
+		// Apply range scale and the calibrating offset/scale
+		const Vector3f val_calibrated{_D * ((raw_f.emult(_sensitivity) * report.scaling) - _calibration_offset)};
+	{
+		// Raw values (ADC units 0 - 65535)
+		report.x_raw = x;
+		report.y_raw = y;
+		report.z_raw = z;
 
-	report.x = val_calibrated(0);
-	report.y = val_calibrated(1);
-	report.z = val_calibrated(2);
+		report.x = val_calibrated(0);
+		report.y = val_calibrated(1);
+		report.z = val_calibrated(2);
 
-	_sensor_mag_pub.update();
+		_sensor_mag_pub.update();
+	}
+	//full report
+	{
+	sensor_mag_full_s full_report;
+		full_report.timestamp = report.timestamp;
+		full_report.device_id = report.device_id;
+		full_report.error_count = report.error_count;
+		full_report.temperature = report.temperature;
+		full_report.is_external = report.is_external;
+
+		full_report.sensitivity[0] = _sensitivity(0);
+		full_report.sensitivity[1] = _sensitivity(1);
+		full_report.sensitivity[2] = _sensitivity(2);
+
+		for(int i = 0; i < 3; i++){ //for x y and z
+			full_report.xyz_calibration_offset[i] = _calibration_offset(i);
+			full_report.sensitivity[i] = _sensitivity(i);
+		}
+
+		// Raw values (ADC units 0 - 65535)
+		full_report.x_raw = x;
+		full_report.y_raw = y;
+		full_report.z_raw = z;
+
+		full_report.d00 = _D(0,0);
+		full_report.d01 = _D(0,1);
+		full_report.d02 = _D(0,2);
+		full_report.d10 = _D(1,0);
+		full_report.d11 = _D(1,1);
+		full_report.d12 = _D(1,2);
+		full_report.d20 = _D(2,0);
+		full_report.d21 = _D(2,1);
+		full_report.d22 = _D(2,2);
+
+		full_report.x = val_calibrated(0);
+		full_report.y = val_calibrated(1);
+		full_report.z = val_calibrated(2);
+
+		_sensor_mag_full_pub.update(full_report);
+	}
 }
+
 
 void PX4Magnetometer::print_status()
 {
 	PX4_INFO(MAG_BASE_DEVICE_PATH " device instance: %d", _class_device_instance);
 
-	PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
-		 (double)_calibration_scale(2));
 	PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),
 		 (double)_calibration_offset(2));
 }
