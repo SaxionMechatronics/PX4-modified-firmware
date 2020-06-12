@@ -40,6 +40,7 @@
 #include <uORB/uORB.h>
 #include <uORB/PublicationMulti.hpp>
 #include <uORB/topics/sensor_mag.h>
+#include <uORB/topics/sensor_mag_full.h>
 
 class PX4Magnetometer : public cdev::CDev
 {
@@ -69,11 +70,13 @@ public:
 private:
 
 	uORB::PublicationMultiData<sensor_mag_s>	_sensor_mag_pub;
+	uORB::PublicationMultiData<sensor_mag_full_s>	_sensor_mag_full_pub;
 
 	const enum Rotation	_rotation;
 
 	matrix::Vector3f	_calibration_scale{1.0f, 1.0f, 1.0f};
 	matrix::Vector3f	_calibration_offset{0.0f, 0.0f, 0.0f};
+	matrix::SquareMatrix<float, 3> _D;
 
 	matrix::Vector3f	_sensitivity{1.0f, 1.0f, 1.0f};
 

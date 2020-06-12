@@ -220,6 +220,16 @@ int do_gyro_calibration(orb_advert_t *mavlink_log_pub)
 	int device_prio_max = 0;
 	int32_t device_id_primary = 0;
 
+	gyro_scale_zero.d00 = 1.0f;
+	gyro_scale_zero.d01 = 0.0f;
+	gyro_scale_zero.d02 = 0.0f;
+	gyro_scale_zero.d10 = 0.0f;
+	gyro_scale_zero.d11 = 1.0f;
+	gyro_scale_zero.d12 = 0.0f;
+	gyro_scale_zero.d20 = 0.0f;
+	gyro_scale_zero.d21 = 0.0f;
+	gyro_scale_zero.d22 = 1.0f;
+
 	worker_data.sensor_correction_sub = orb_subscribe(ORB_ID(sensor_correction));
 
 	for (unsigned s = 0; s < max_gyros; s++) {
@@ -271,6 +281,33 @@ int do_gyro_calibration(orb_advert_t *mavlink_log_pub)
 
 		(void)sprintf(str, "CAL_GYRO%u_ZOFF", s);
 		res = param_set_no_notification(param_find(str), &gyro_scale_zero.z_offset);
+
+		(void)sprintf(str, "CAL_GYRO%u_D00", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d00);
+
+		(void)sprintf(str, "CAL_GYRO%u_D01", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d01);
+
+		(void)sprintf(str, "CAL_GYRO%u_D02", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d02);
+
+		(void)sprintf(str, "CAL_GYRO%u_D10", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d10);
+
+		(void)sprintf(str, "CAL_GYRO%u_D11", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d11);
+
+		(void)sprintf(str, "CAL_GYRO%u_D12", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d12);
+
+		(void)sprintf(str, "CAL_GYRO%u_D20", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d20);
+
+		(void)sprintf(str, "CAL_GYRO%u_D21", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d21);
+
+		(void)sprintf(str, "CAL_GYRO%u_D22", s);
+		res = param_set_no_notification(param_find(str), &gyro_scale_zero.d22);
 
 		if (res != PX4_OK) {
 			PX4_ERR("unable to reset %s", str);
@@ -468,6 +505,27 @@ int do_gyro_calibration(orb_advert_t *mavlink_log_pub)
 				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].y_offset)));
 				(void)sprintf(str, "CAL_GYRO%u_ZOFF", uorb_index);
 				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].z_offset)));
+
+				(void)sprintf(str, "CAL_GYRO%u_D00", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d00)));
+				(void)sprintf(str, "CAL_GYRO%u_D01", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d01)));
+				(void)sprintf(str, "CAL_GYRO%u_D02", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d02)));
+
+				(void)sprintf(str, "CAL_GYRO%u_D10", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d10)));
+				(void)sprintf(str, "CAL_GYRO%u_D11", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d11)));
+				(void)sprintf(str, "CAL_GYRO%u_D12", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d12)));
+
+				(void)sprintf(str, "CAL_GYRO%u_D20", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d20)));
+				(void)sprintf(str, "CAL_GYRO%u_D21", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d21)));
+				(void)sprintf(str, "CAL_GYRO%u_D22", uorb_index);
+				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.gyro_scale[uorb_index].d22)));
 
 				(void)sprintf(str, "CAL_GYRO%u_ID", uorb_index);
 				failed |= (PX4_OK != param_set_no_notification(param_find(str), &(worker_data.device_id[uorb_index])));

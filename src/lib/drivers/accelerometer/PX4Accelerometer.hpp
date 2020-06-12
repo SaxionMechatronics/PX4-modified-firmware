@@ -44,6 +44,7 @@
 #include <uORB/PublicationMulti.hpp>
 #include <uORB/topics/sensor_accel.h>
 #include <uORB/topics/sensor_accel_fifo.h>
+#include <uORB/topics/sensor_accel_fifo_full.h>
 #include <uORB/topics/sensor_accel_integrated.h>
 #include <uORB/topics/sensor_accel_status.h>
 
@@ -94,6 +95,7 @@ private:
 
 	uORB::PublicationQueuedMulti<sensor_accel_s>      _sensor_pub;
 	uORB::PublicationMulti<sensor_accel_fifo_s>       _sensor_fifo_pub;
+	uORB::PublicationMulti<sensor_accel_fifo_full_s>	_sensor_fifo_full_pub;
 	uORB::PublicationMulti<sensor_accel_integrated_s> _sensor_integrated_pub;
 	uORB::PublicationMulti<sensor_accel_status_s>     _sensor_status_pub;
 
@@ -103,6 +105,7 @@ private:
 
 	matrix::Vector3f	_calibration_scale{1.f, 1.f, 1.f};
 	matrix::Vector3f	_calibration_offset{0.f, 0.f, 0.f};
+	matrix::SquareMatrix<float, 3> _D;
 
 	matrix::Vector3f _delta_velocity_prev{0.f, 0.f, 0.f};	// delta velocity from the previous IMU measurement
 	float _vibration_metric{0.f};	// high frequency vibration level in the IMU delta velocity data (m/s)

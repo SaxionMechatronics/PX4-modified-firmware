@@ -112,6 +112,7 @@ set(msg_files
 	satellite_info.msg
 	sensor_accel.msg
 	sensor_accel_fifo.msg
+	sensor_accel_fifo_full.msg
 	sensor_accel_integrated.msg
 	sensor_accel_status.msg
 	sensor_baro.msg
@@ -119,9 +120,11 @@ set(msg_files
 	sensor_correction.msg
 	sensor_gyro.msg
 	sensor_gyro_fifo.msg
+	sensor_gyro_fifo_full.msg
 	sensor_gyro_integrated.msg
 	sensor_gyro_status.msg
 	sensor_mag.msg
+	sensor_mag_full.msg
 	sensor_preflight.msg
 	sensor_selection.msg
 	servorail_status.msg

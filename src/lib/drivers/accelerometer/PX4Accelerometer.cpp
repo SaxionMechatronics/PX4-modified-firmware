@@ -38,6 +38,7 @@
 
 using namespace time_literals;
 using matrix::Vector3f;
+using matrix::SquareMatrix;
 
 static inline int32_t sum(const int16_t samples[16], uint8_t len)
 {
@@ -68,6 +69,7 @@ PX4Accelerometer::PX4Accelerometer(uint32_t device_id, ORB_PRIO priority, enum R
 	ModuleParams(nullptr),
 	_sensor_pub{ORB_ID(sensor_accel), priority},
 	_sensor_fifo_pub{ORB_ID(sensor_accel_fifo), priority},
+	_sensor_fifo_full_pub{ORB_ID(sensor_accel_fifo_full), priority},
 	_sensor_integrated_pub{ORB_ID(sensor_accel_integrated), priority},
 	_sensor_status_pub{ORB_ID(sensor_accel_status), priority},
 	_device_id{device_id},
@@ -94,6 +96,7 @@ PX4Accelerometer::~PX4Accelerometer()
 	_sensor_pub.unadvertise();
 	_sensor_fifo_pub.unadvertise();
 	_sensor_integrated_pub.unadvertise();
+	_sensor_fifo_full_pub.unadvertise();
 	_sensor_status_pub.unadvertise();
 }
 
@@ -106,9 +109,13 @@ int PX4Accelerometer::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 			memcpy(&cal, (accel_calibration_s *) arg, sizeof(cal));
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
-			_calibration_scale = Vector3f{cal.x_scale, cal.y_scale, cal.z_scale};
-		}
 
+
+			float misaling_data[9] = {cal.d00, 	cal.d01, 	cal.d02,
+																cal.d10, 	cal.d11, 	cal.d12,
+																cal.d20, 	cal.d21,	cal.d22};
+			_D = SquareMatrix<float, 3>{misaling_data};
+		}
 		return PX4_OK;
 
 	case DEVIOCGDEVICEID:
@@ -153,6 +160,9 @@ void PX4Accelerometer::set_update_rate(uint16_t rate)
 
 void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, float z)
 {
+	float x_raw = x;
+	float y_raw = y;
+	float z_raw = z;
 	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
 
@@ -182,6 +192,42 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_pub.publish(report);
+	}
+
+	{
+		sensor_accel_fifo_full_s full_report;
+
+		full_report.timestamp_sample = timestamp_sample;
+		full_report.device_id = _device_id;
+		full_report.temperature = _temperature;
+
+		full_report.x_raw = x_raw;
+		full_report.y_raw = y_raw;
+		full_report.z_raw = z_raw;
+
+		full_report.x = val_calibrated(0);
+		full_report.y = val_calibrated(1);
+		full_report.z = val_calibrated(2);
+
+		full_report.d00 = _D(0,0);
+		full_report.d01 = _D(0,1);
+		full_report.d02 = _D(0,2);
+		full_report.d10 = _D(1,0);
+		full_report.d11 = _D(1,1);
+		full_report.d12 = _D(1,2);
+		full_report.d20 = _D(2,0);
+		full_report.d21 = _D(2,1);
+		full_report.d22 = _D(2,2);
+
+		full_report.scale = _scale;
+		full_report.rotation = _rotation;
+
+		for(int i = 0; i < 3; i++){ //for x y and z
+			full_report.xyz_calibration_offset[i] = _calibration_offset(i);
+		}
+
+		full_report.timestamp = hrt_absolute_time();
+		_sensor_fifo_full_pub.publish(full_report);
 	}
 
 	// Integrated values

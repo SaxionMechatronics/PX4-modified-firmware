@@ -68,6 +68,7 @@ PX4Gyroscope::PX4Gyroscope(uint32_t device_id, ORB_PRIO priority, enum Rotation 
 	ModuleParams(nullptr),
 	_sensor_pub{ORB_ID(sensor_gyro), priority},
 	_sensor_fifo_pub{ORB_ID(sensor_gyro_fifo), priority},
+	_sensor_fifo_full_pub{ORB_ID(sensor_gyro_fifo_full), priority},
 	_sensor_integrated_pub{ORB_ID(sensor_gyro_integrated), priority},
 	_sensor_status_pub{ORB_ID(sensor_gyro_status), priority},
 	_device_id{device_id},
@@ -106,6 +107,12 @@ int PX4Gyroscope::ioctl(cdev::file_t *filp, int cmd, unsigned long arg)
 			memcpy(&cal, (gyro_calibration_s *) arg, sizeof(cal));
 
 			_calibration_offset = Vector3f{cal.x_offset, cal.y_offset, cal.z_offset};
+
+			float misalgn_data[9] = {	cal.d00, 	cal.d01, 	cal.d02,
+																cal.d10,	cal.d11,	cal.d12,
+																cal.d20,	cal.d21,	cal.d22 };
+
+			_D = matrix::SquareMatrix<float, 3>{misalgn_data};
 		}
 
 		return PX4_OK;
@@ -152,6 +159,9 @@ void PX4Gyroscope::set_update_rate(uint16_t rate)
 
 void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float z)
 {
+	float x_raw = x;
+	float y_raw = y;
+	float z_raw = z;
 	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
 
@@ -181,6 +191,42 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 		report.timestamp = hrt_absolute_time();
 
 		_sensor_pub.publish(report);
+	}
+
+	{
+		sensor_gyro_fifo_full_s report{};
+
+		report.timestamp_sample = timestamp_sample;
+		report.device_id = _device_id;
+		report.temperature = _temperature;
+		report.rotation = _rotation;
+		report.scale = _scale;
+
+		report.x_raw = x_raw;
+		report.y_raw = y_raw;
+		report.z_raw = z_raw;
+
+		report.d00 = _D(0,0);
+		report.d01 = _D(0,1);
+		report.d02 = _D(0,2);
+		report.d10 = _D(1,0);
+		report.d11 = _D(1,1);
+		report.d12 = _D(1,2);
+		report.d20 = _D(2,0);
+		report.d21 = _D(2,1);
+		report.d22 = _D(2,2);
+
+		report.x = val_calibrated(0);
+		report.y = val_calibrated(1);
+		report.z = val_calibrated(2);
+
+		for(int i = 0; i < 3; i++){ //for x y and z
+			report.xyz_calibration_offset[i] = _calibration_offset(i);
+		}
+
+		report.timestamp = hrt_absolute_time();
+
+		_sensor_fifo_full_pub.publish(report);
 	}
 
 	// Integrated values

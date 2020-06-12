@@ -168,6 +168,37 @@ void VotedSensorsUpdate::parametersUpdate()
 				(void)sprintf(str, "CAL_GYRO%u_ZOFF", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.z_offset));
 
+				(void)sprintf(str, "CAL_GYRO%u_ZOFF", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.z_offset));
+
+				(void)sprintf(str, "CAL_GYRO%u_D00", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d00));
+
+				(void)sprintf(str, "CAL_GYRO%u_D01", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d01));
+
+				(void)sprintf(str, "CAL_GYRO%u_D02", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d02));
+
+				(void)sprintf(str, "CAL_GYRO%u_D10", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d10));
+
+				(void)sprintf(str, "CAL_GYRO%u_D11", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d11));
+
+				(void)sprintf(str, "CAL_GYRO%u_D12", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d12));
+
+				(void)sprintf(str, "CAL_GYRO%u_D20", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d20));
+
+				(void)sprintf(str, "CAL_GYRO%u_D21", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d21));
+
+				(void)sprintf(str, "CAL_GYRO%u_D22", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &gscale.d22));
+
+
 				if (failed) {
 					PX4_ERR(CAL_ERROR_APPLY_CAL_MSG, "gyro", i);
 
@@ -272,6 +303,42 @@ void VotedSensorsUpdate::parametersUpdate()
 
 				(void)sprintf(str, "CAL_ACC%u_ZSCALE", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.z_scale));
+
+				(void)sprintf(str, "CAL_ACC%u_XOFF", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.x_offset));
+
+				(void)sprintf(str, "CAL_ACC%u_YOFF", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.y_offset));
+
+				(void)sprintf(str, "CAL_ACC%u_ZOFF", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.z_offset));
+
+				(void)sprintf(str, "CAL_ACC%u_D00", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d00));
+
+				(void)sprintf(str, "CAL_ACC%u_D01", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d01));
+
+				(void)sprintf(str, "CAL_ACC%u_D02", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d02));
+
+				(void)sprintf(str, "CAL_ACC%u_D10", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d10));
+
+				(void)sprintf(str, "CAL_ACC%u_D11", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d11));
+
+				(void)sprintf(str, "CAL_ACC%u_D12", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d12));
+
+				(void)sprintf(str, "CAL_ACC%u_D20", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d20));
+
+				(void)sprintf(str, "CAL_ACC%u_D21", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d21));
+
+				(void)sprintf(str, "CAL_ACC%u_D22", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &ascale.d22));
 
 				if (failed) {
 					PX4_ERR(CAL_ERROR_APPLY_CAL_MSG, "accel", i);
@@ -409,6 +476,33 @@ void VotedSensorsUpdate::parametersUpdate()
 
 				(void)sprintf(str, "CAL_MAG%u_ZSCALE", i);
 				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.z_scale));
+
+				(void)sprintf(str, "CAL_MAG%u_D00", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d00));
+
+				(void)sprintf(str, "CAL_MAG%u_D01", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d01));
+
+				(void)sprintf(str, "CAL_MAG%u_D02", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d02));
+
+				(void)sprintf(str, "CAL_MAG%u_D10", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d10));
+
+				(void)sprintf(str, "CAL_MAG%u_D11", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d11));
+
+				(void)sprintf(str, "CAL_MAG%u_D12", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d12));
+
+				(void)sprintf(str, "CAL_MAG%u_D20", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d20));
+
+				(void)sprintf(str, "CAL_MAG%u_D21", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d21));
+
+				(void)sprintf(str, "CAL_MAG%u_D22", i);
+				failed = failed || (PX4_OK != param_get(param_find(str), &mscale.d22));
 
 				(void)sprintf(str, "CAL_MAG%u_ROT", i);
 				int32_t mag_rot = 0;

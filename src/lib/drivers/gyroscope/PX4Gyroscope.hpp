@@ -43,6 +43,7 @@
 #include <uORB/PublicationMulti.hpp>
 #include <uORB/topics/sensor_gyro.h>
 #include <uORB/topics/sensor_gyro_fifo.h>
+#include <uORB/topics/sensor_gyro_fifo_full.h>
 #include <uORB/topics/sensor_gyro_integrated.h>
 #include <uORB/topics/sensor_gyro_status.h>
 
@@ -95,6 +96,7 @@ private:
 
 	uORB::PublicationQueuedMulti<sensor_gyro_s>      _sensor_pub;
 	uORB::PublicationMulti<sensor_gyro_fifo_s>       _sensor_fifo_pub;
+	uORB::PublicationMulti<sensor_gyro_fifo_full_s>  _sensor_fifo_full_pub;
 	uORB::PublicationMulti<sensor_gyro_integrated_s> _sensor_integrated_pub;
 	uORB::PublicationMulti<sensor_gyro_status_s>     _sensor_status_pub;
 
@@ -103,6 +105,7 @@ private:
 	Integrator		_integrator{5000, true}; // 200 Hz default
 
 	matrix::Vector3f	_calibration_offset{0.f, 0.f, 0.f};
+	matrix::SquareMatrix<float, 3> _D;
 
 	matrix::Vector3f _delta_angle_prev{0.f, 0.f, 0.f};	// delta angle from the previous IMU measurement
 	float _vibration_metric{0.f};	// high frequency vibration level in the IMU delta angle data (rad)
