@@ -130,7 +130,7 @@ void PX4Magnetometer::update(hrt_abstime timestamp_sample, float x, float y, flo
 	report.timestamp = timestamp_sample;
 
 	// Apply rotation (before scaling)
-	rotate_3f(_rotation, x, y, z);
+	// rotate_3f(_rotation, x, y, z);
 
 	const matrix::Vector3f raw_f{x, y, z};
 

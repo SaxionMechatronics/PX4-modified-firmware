@@ -164,7 +164,7 @@ void PX4Accelerometer::update(hrt_abstime timestamp_sample, float x, float y, fl
 	float y_raw = y;
 	float z_raw = z;
 	// Apply rotation (before scaling)
-	rotate_3f(_rotation, x, y, z);
+	// rotate_3f(_rotation, x, y, z);
 
 	const Vector3f raw{x, y, z};
 
