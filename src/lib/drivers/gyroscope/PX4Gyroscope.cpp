@@ -176,7 +176,8 @@ void PX4Gyroscope::update(hrt_abstime timestamp_sample, float x, float y, float 
 	}
 
 	// Apply range scale and the calibrating offset/scale
-	const Vector3f val_calibrated{((raw * _scale) - _calibration_offset)};
+	// const Vector3f val_calibrated{((raw * _scale) - _calibration_offset)};
+	const Vector3f val_calibrated{_D * ((raw * _scale) - _calibration_offset)};
 
 	// publish raw data immediately
 	{
