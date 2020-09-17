@@ -115,15 +115,21 @@ set(msg_files
 	satellite_info.msg
 	sensor_accel.msg
 	sensor_accel_fifo.msg
+	sensor_accel_full.msg
 	sensor_baro.msg
 	sensor_combined.msg
 	sensor_correction.msg
 	sensor_gps.msg
 	sensor_gyro.msg
+<<<<<<< HEAD
 	sensor_gyro_fft.msg
+=======
+	sensor_gyro_full.msg
+>>>>>>> Added expanded topics
 	sensor_gyro_fifo.msg
 	sensor_mag.msg
 	sensor_preflight_mag.msg
+	sensor_mag_full.ms
 	sensor_selection.msg
 	sensors_status_imu.msg
 	system_power.msg

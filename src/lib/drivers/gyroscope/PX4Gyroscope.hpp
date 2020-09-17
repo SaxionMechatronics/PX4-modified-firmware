@@ -37,6 +37,7 @@
 #include <lib/conversion/rotation.h>
 #include <uORB/PublicationMulti.hpp>
 #include <uORB/topics/sensor_gyro.h>
+#include <uORB/topics/sensor_gyro_full.h>
 #include <uORB/topics/sensor_gyro_fifo.h>
 
 class PX4Gyroscope
@@ -64,8 +65,14 @@ public:
 private:
 	void Publish(const hrt_abstime &timestamp_sample, float x, float y, float z);
 
+<<<<<<< HEAD
 	uORB::PublicationMulti<sensor_gyro_s> _sensor_pub{ORB_ID(sensor_gyro)};
 	uORB::PublicationMulti<sensor_gyro_fifo_s>  _sensor_fifo_pub{ORB_ID(sensor_gyro_fifo)};
+=======
+	uORB::PublicationQueuedMulti<sensor_gyro_s> _sensor_pub;
+	uORB::PublicationMulti<sensor_gyro_fifo_s>  _sensor_fifo_pub;
+	uORB::PublicationMulti<sensor_gyro_full_s> _sensor_full_pub;
+>>>>>>> Added expanded topics
 
 	uint32_t		_device_id{0};
 	const enum Rotation	_rotation;

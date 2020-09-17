@@ -37,6 +37,12 @@
 #include <lib/drivers/device/Device.hpp>
 
 PX4Magnetometer::PX4Magnetometer(uint32_t device_id, enum Rotation rotation) :
+<<<<<<< HEAD
+=======
+	CDev(nullptr),
+	_sensor_pub{ORB_ID(sensor_mag)},
+	_sensor_full_pub{ORB_ID(sensor_mag_full)},
+>>>>>>> Added expanded topics
 	_device_id{device_id},
 	_rotation{rotation}
 {
@@ -64,21 +70,78 @@ void PX4Magnetometer::set_device_type(uint8_t devtype)
 
 void PX4Magnetometer::update(const hrt_abstime &timestamp_sample, float x, float y, float z)
 {
-	sensor_mag_s report;
-	report.timestamp_sample = timestamp_sample;
-	report.device_id = _device_id;
-	report.temperature = _temperature;
-	report.error_count = _error_count;
 
-	// Apply rotation (before scaling)
+	float x_raw = x;
+	float y_raw = y;
+	float z_raw = z;
+
 	rotate_3f(_rotation, x, y, z);
+	{
+		sensor_mag_s report;
+		report.timestamp_sample = timestamp_sample;
+		report.device_id = _device_id;
+		report.temperature = _temperature;
+		report.error_count = _error_count;
 
-	report.x = x * _scale;
-	report.y = y * _scale;
-	report.z = z * _scale;
+		// Apply rotation (before scaling)
 
-	report.is_external = _external;
+		const matrix::Vector3f raw_f{x, y, z};
 
-	report.timestamp = hrt_absolute_time();
-	_sensor_pub.publish(report);
+		// Apply range scale and the calibrating offset/scale
+		//const matrix::Vector3f val_calibrated{(((raw_f * _scale) - _calibration_offset).emult(_calibration_scale))};
+
+		//report.x = val_calibrated(0);
+		//report.y = val_calibrated(1);
+		//report.z = val_calibrated(2);
+
+		report.is_external = _external;
+
+		report.x = x * _scale;
+		report.y = y * _scale;
+		report.z = z * _scale;
+
+		report.timestamp = hrt_absolute_time();
+		_sensor_pub.publish(report);
+	}
+
+	{
+		sensor_mag_full_s report;
+		report.timestamp_sample = timestamp_sample;
+		report.device_id = _device_id;
+		report.temperature = _temperature;
+		report.error_count = _error_count;
+
+		// Apply rotation (before scaling)
+
+		const matrix::Vector3f raw_f{x, y, z};
+
+		// Apply range scale and the calibrating offset/scale
+		//const matrix::Vector3f val_calibrated{(((raw_f * _scale) - _calibration_offset).emult(_calibration_scale))};
+
+		//report.x = val_calibrated(0);
+		//report.y = val_calibrated(1);
+		//report.z = val_calibrated(2);
+		report.x = x * _scale;
+		report.y = y * _scale;
+		report.z = z * _scale;
+
+		report.x_raw = x_raw;
+		report.y_raw = y_raw;
+		report.z_raw = z_raw;
+
+		report.is_external = _external;
+
+		report.timestamp = hrt_absolute_time();
+		_sensor_full_pub.publish(report);
+	}
+}
+
+void PX4Magnetometer::print_status()
+{
+	PX4_INFO(MAG_BASE_DEVICE_PATH " device instance: %d", _class_device_instance);
+
+	PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
+		 (double)_calibration_scale(2));
+	PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),
+		 (double)_calibration_offset(2));
 }
