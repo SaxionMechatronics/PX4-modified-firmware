@@ -52,6 +52,13 @@ static constexpr int32_t sum(const int16_t samples[16], uint8_t len)
 }
 
 PX4Gyroscope::PX4Gyroscope(uint32_t device_id, enum Rotation rotation) :
+<<<<<<< HEAD
+=======
+	ModuleParams(nullptr),
+	_sensor_pub{ORB_ID(sensor_gyro)},
+	_sensor_fifo_pub{ORB_ID(sensor_gyro_fifo)},
+	_sensor_full_pub{ORB_ID(sensor_gyro_full)},
+>>>>>>> Added expanded topics
 	_device_id{device_id},
 	_rotation{rotation}
 {
@@ -120,19 +127,45 @@ void PX4Gyroscope::updateFIFO(sensor_gyro_fifo_s &sample)
 
 void PX4Gyroscope::Publish(const hrt_abstime &timestamp_sample, float x, float y, float z)
 {
+	float x_raw = x;
+	float y_raw = y;
+	float z_raw = z;
+
 	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
 
-	sensor_gyro_s report;
+	{
+		// Apply rotation (before scaling)
+		sensor_gyro_s report;
 
-	report.timestamp_sample = timestamp_sample;
-	report.device_id = _device_id;
-	report.temperature = _temperature;
-	report.error_count = _error_count;
-	report.x = x * _scale;
-	report.y = y * _scale;
-	report.z = z * _scale;
-	report.timestamp = hrt_absolute_time();
+		report.timestamp_sample = timestamp_sample;
+		report.device_id = _device_id;
+		report.temperature = _temperature;
+		report.error_count = _error_count;
+		report.x = x * _scale;
+		report.y = y * _scale;
+		report.z = z * _scale;
+		report.timestamp = hrt_absolute_time();
 
-	_sensor_pub.publish(report);
+		_sensor_pub.publish(report);
+	}
+
+	{
+		sensor_gyro_full_s report;
+
+		report.timestamp_sample = timestamp_sample;
+		report.device_id = _device_id;
+		report.temperature = _temperature;
+		report.error_count = _error_count;
+		report.x = x * _scale;
+		report.y = y * _scale;
+		report.z = z * _scale;
+		report.x_raw = x_raw;
+		report.y_raw = y_raw;
+		report.z_raw = z_raw;
+		report.timestamp = hrt_absolute_time();
+
+		_sensor_full_pub.publish(report);
+	}
+
 }

@@ -65,6 +65,13 @@ static constexpr uint8_t clipping(const int16_t samples[16], int16_t clip_limit,
 }
 
 PX4Accelerometer::PX4Accelerometer(uint32_t device_id, enum Rotation rotation) :
+<<<<<<< HEAD
+=======
+	ModuleParams(nullptr),
+	_sensor_pub{ORB_ID(sensor_accel)},
+	_sensor_fifo_pub{ORB_ID(sensor_accel_fifo)},
+	_sensor_full_pub{ORB_ID(sensor_accel_full)},
+>>>>>>> Added expanded topics
 	_device_id{device_id},
 	_rotation{rotation}
 {
@@ -77,7 +84,6 @@ PX4Accelerometer::PX4Accelerometer(uint32_t device_id, enum Rotation rotation) :
 PX4Accelerometer::~PX4Accelerometer()
 {
 	_sensor_pub.unadvertise();
-	_sensor_fifo_pub.unadvertise();
 }
 
 void PX4Accelerometer::set_device_type(uint8_t devtype)
@@ -146,29 +152,67 @@ void PX4Accelerometer::updateFIFO(sensor_accel_fifo_s &sample)
 
 void PX4Accelerometer::Publish(const hrt_abstime &timestamp_sample, float x, float y, float z, uint8_t clip_count[3])
 {
-	// Apply rotation (before scaling)
+	// @Henk zijn dit de juiste values of moet je ongeintegreerd hebben?
+
+	float x_raw = x;
+	float y_raw = y;
+	float z_raw = z;
+
+
 	rotate_3f(_rotation, x, y, z);
+	{
+		// Apply rotation (before scaling)
 
-	float clipping_x = clip_count[0];
-	float clipping_y = clip_count[1];
-	float clipping_z = clip_count[2];
-	rotate_3f(_rotation, clipping_x, clipping_y, clipping_z);
 
-	sensor_accel_s report;
+		float clipping_x = clip_count[0];
+		float clipping_y = clip_count[1];
+		float clipping_z = clip_count[2];
+		rotate_3f(_rotation, clipping_x, clipping_y, clipping_z);
 
-	report.timestamp_sample = timestamp_sample;
-	report.device_id = _device_id;
-	report.temperature = _temperature;
-	report.error_count = _error_count;
-	report.x = x * _scale;
-	report.y = y * _scale;
-	report.z = z * _scale;
-	report.clip_counter[0] = fabsf(roundf(clipping_x));
-	report.clip_counter[1] = fabsf(roundf(clipping_y));
-	report.clip_counter[2] = fabsf(roundf(clipping_z));
-	report.timestamp = hrt_absolute_time();
+		sensor_accel_s report;
 
-	_sensor_pub.publish(report);
+		report.timestamp_sample = timestamp_sample;
+		report.device_id = _device_id;
+		report.temperature = _temperature;
+		report.error_count = _error_count;
+		report.x = x * _scale;
+		report.y = y * _scale;
+		report.z = z * _scale;
+		report.clip_counter[0] = fabsf(roundf(clipping_x));
+		report.clip_counter[1] = fabsf(roundf(clipping_y));
+		report.clip_counter[2] = fabsf(roundf(clipping_z));
+		report.timestamp = hrt_absolute_time();
+
+		_sensor_pub.publish(report);
+	}
+
+	{
+		// Apply rotation (before scaling)
+
+		float clipping_x = clip_count[0];
+		float clipping_y = clip_count[1];
+		float clipping_z = clip_count[2];
+		rotate_3f(_rotation, clipping_x, clipping_y, clipping_z);
+
+		sensor_accel_full_s report;
+
+		report.timestamp_sample = timestamp_sample;
+		report.device_id = _device_id;
+		// report.temperature = _temperature;
+		report.error_count = _error_count;
+		report.x = x * _scale;
+		report.y = y * _scale;
+		report.z = z * _scale;
+		report.x_raw = x_raw;
+		report.y_raw = y_raw;
+		report.z_raw = z_raw;
+		report.clip_counter[0] = fabsf(roundf(clipping_x));
+		report.clip_counter[1] = fabsf(roundf(clipping_y));
+		report.clip_counter[2] = fabsf(roundf(clipping_z));
+		report.timestamp = hrt_absolute_time();
+
+		_sensor_full_pub.publish(report);
+	}
 }
 
 void PX4Accelerometer::UpdateClipLimit()
