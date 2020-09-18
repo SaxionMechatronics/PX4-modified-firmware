@@ -149,13 +149,7 @@ void PX4Accelerometer::updateFIFO(sensor_accel_fifo_s &sample)
 
 void PX4Accelerometer::Publish(const hrt_abstime &timestamp_sample, float x, float y, float z, uint8_t clip_count[3], int x_raw, int y_raw, int z_raw)
 {
-	// @Henk zijn dit de juiste values of moet je ongeintegreerd hebben?
-
-	float x_raw = x;
-	float y_raw = y;
-	float z_raw = z;
-
-
+	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
 	{
 
