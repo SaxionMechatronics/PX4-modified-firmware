@@ -12,6 +12,7 @@ float32 y_raw  		  # raw y value
 float32 z_raw  		  # raw z value
 
 float32 temperature       # temperature in degrees celsius
+float32 scale
 
 uint32 error_count
 

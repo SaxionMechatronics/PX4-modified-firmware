@@ -40,6 +40,7 @@
 #include <uORB/topics/sensor_accel.h>
 #include <uORB/topics/sensor_accel_fifo.h>
 #include <uORB/topics/sensor_accel_full.h>
+#include <matrix/math.hpp>
 
 class PX4Accelerometer
 {
@@ -64,17 +65,12 @@ public:
 	void updateFIFO(sensor_accel_fifo_s &sample);
 
 private:
-	void Publish(const hrt_abstime &timestamp_sample, float x, float y, float z, uint8_t clip_count[3]);
+	void Publish(const hrt_abstime &timestamp_sample, float x, float y, float z, uint8_t clip_count[3], int x_raw, int y_raw, int z_raw);
 	void UpdateClipLimit();
 
-<<<<<<< HEAD
 	uORB::PublicationMulti<sensor_accel_s> _sensor_pub{ORB_ID(sensor_accel)};
 	uORB::PublicationMulti<sensor_accel_fifo_s>  _sensor_fifo_pub{ORB_ID(sensor_accel_fifo)};
-=======
-	uORB::PublicationQueuedMulti<sensor_accel_s> _sensor_pub;
-	uORB::PublicationMulti<sensor_accel_fifo_s>  _sensor_fifo_pub;
-	uORB::PublicationMulti<sensor_accel_full_s> _sensor_full_pub;
->>>>>>> Added expanded topics
+	uORB::PublicationMulti<sensor_accel_full_s>  _sensor_full_pub{ORB_ID(sensor_accel_full)};
 
 	uint32_t		_device_id{0};
 	const enum Rotation	_rotation;
@@ -84,6 +80,8 @@ private:
 	float			_range{16 * CONSTANTS_ONE_G};
 	float			_scale{1.f};
 	float			_temperature{NAN};
+
+	matrix::SquareMatrix<float,3>	_D;
 
 	float			_clip_limit{_range / _scale};
 

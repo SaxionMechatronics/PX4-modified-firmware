@@ -52,13 +52,6 @@ static constexpr int32_t sum(const int16_t samples[16], uint8_t len)
 }
 
 PX4Gyroscope::PX4Gyroscope(uint32_t device_id, enum Rotation rotation) :
-<<<<<<< HEAD
-=======
-	ModuleParams(nullptr),
-	_sensor_pub{ORB_ID(sensor_gyro)},
-	_sensor_fifo_pub{ORB_ID(sensor_gyro_fifo)},
-	_sensor_full_pub{ORB_ID(sensor_gyro_full)},
->>>>>>> Added expanded topics
 	_device_id{device_id},
 	_rotation{rotation}
 {
@@ -90,7 +83,7 @@ void PX4Gyroscope::set_device_type(uint8_t devtype)
 void PX4Gyroscope::update(const hrt_abstime &timestamp_sample, float x, float y, float z)
 {
 	// publish
-	Publish(timestamp_sample, x, y, z);
+	Publish(timestamp_sample, x, y, z, 0, 0, 0);
 }
 
 void PX4Gyroscope::updateFIFO(sensor_gyro_fifo_s &sample)
@@ -121,15 +114,12 @@ void PX4Gyroscope::updateFIFO(sensor_gyro_fifo_s &sample)
 		const float z = integral(2) / (float)N;
 
 		// publish
-		Publish(sample.timestamp_sample, x, y, z);
+		Publish(sample.timestamp_sample, x, y, z, *sample.x, *sample.y, *sample.z);
 	}
 }
 
-void PX4Gyroscope::Publish(const hrt_abstime &timestamp_sample, float x, float y, float z)
+void PX4Gyroscope::Publish(const hrt_abstime &timestamp_sample, float x, float y, float z, float x_raw, float y_raw, float z_raw)
 {
-	float x_raw = x;
-	float y_raw = y;
-	float z_raw = z;
 
 	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
@@ -157,6 +147,7 @@ void PX4Gyroscope::Publish(const hrt_abstime &timestamp_sample, float x, float y
 		report.device_id = _device_id;
 		report.temperature = _temperature;
 		report.error_count = _error_count;
+		report.scale = _scale;
 		report.x = x * _scale;
 		report.y = y * _scale;
 		report.z = z * _scale;

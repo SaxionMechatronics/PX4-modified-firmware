@@ -63,16 +63,11 @@ public:
 	void updateFIFO(sensor_gyro_fifo_s &sample);
 
 private:
-	void Publish(const hrt_abstime &timestamp_sample, float x, float y, float z);
+	void Publish(const hrt_abstime &timestamp_sample, float x, float y, float z, float x_raw, float y_raw, float z_raw);
 
-<<<<<<< HEAD
 	uORB::PublicationMulti<sensor_gyro_s> _sensor_pub{ORB_ID(sensor_gyro)};
 	uORB::PublicationMulti<sensor_gyro_fifo_s>  _sensor_fifo_pub{ORB_ID(sensor_gyro_fifo)};
-=======
-	uORB::PublicationQueuedMulti<sensor_gyro_s> _sensor_pub;
-	uORB::PublicationMulti<sensor_gyro_fifo_s>  _sensor_fifo_pub;
-	uORB::PublicationMulti<sensor_gyro_full_s> _sensor_full_pub;
->>>>>>> Added expanded topics
+	uORB::PublicationMulti<sensor_gyro_full_s>  _sensor_full_pub{ORB_ID(sensor_gyro_full)};
 
 	uint32_t		_device_id{0};
 	const enum Rotation	_rotation;
