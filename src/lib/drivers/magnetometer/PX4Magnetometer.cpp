@@ -37,12 +37,6 @@
 #include <lib/drivers/device/Device.hpp>
 
 PX4Magnetometer::PX4Magnetometer(uint32_t device_id, enum Rotation rotation) :
-<<<<<<< HEAD
-=======
-	CDev(nullptr),
-	_sensor_pub{ORB_ID(sensor_mag)},
-	_sensor_full_pub{ORB_ID(sensor_mag_full)},
->>>>>>> Added expanded topics
 	_device_id{device_id},
 	_rotation{rotation}
 {
@@ -128,6 +122,8 @@ void PX4Magnetometer::update(const hrt_abstime &timestamp_sample, float x, float
 		report.x_raw = x_raw;
 		report.y_raw = y_raw;
 		report.z_raw = z_raw;
+
+		report.scale = _scale;
 
 		report.is_external = _external;
 

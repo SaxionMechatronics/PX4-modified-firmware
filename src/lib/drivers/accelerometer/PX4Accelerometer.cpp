@@ -65,13 +65,6 @@ static constexpr uint8_t clipping(const int16_t samples[16], int16_t clip_limit,
 }
 
 PX4Accelerometer::PX4Accelerometer(uint32_t device_id, enum Rotation rotation) :
-<<<<<<< HEAD
-=======
-	ModuleParams(nullptr),
-	_sensor_pub{ORB_ID(sensor_accel)},
-	_sensor_fifo_pub{ORB_ID(sensor_accel_fifo)},
-	_sensor_full_pub{ORB_ID(sensor_accel_full)},
->>>>>>> Added expanded topics
 	_device_id{device_id},
 	_rotation{rotation}
 {
@@ -108,7 +101,7 @@ void PX4Accelerometer::update(const hrt_abstime &timestamp_sample, float x, floa
 	clip_count[2] = (fabsf(z) >= _clip_limit);
 
 	// publish
-	Publish(timestamp_sample, x, y, z, clip_count);
+	Publish(timestamp_sample, x, y, z, clip_count, 0,0,0);
 }
 
 void PX4Accelerometer::updateFIFO(sensor_accel_fifo_s &sample)
@@ -146,22 +139,15 @@ void PX4Accelerometer::updateFIFO(sensor_accel_fifo_s &sample)
 		const float z = integral(2) / (float)N;
 
 		// publish
-		Publish(sample.timestamp_sample, x, y, z, clip_count);
+		Publish(sample.timestamp_sample, x, y, z, clip_count, *sample.x, *sample.y, *sample.z);
 	}
 }
 
-void PX4Accelerometer::Publish(const hrt_abstime &timestamp_sample, float x, float y, float z, uint8_t clip_count[3])
+void PX4Accelerometer::Publish(const hrt_abstime &timestamp_sample, float x, float y, float z, uint8_t clip_count[3], int x_raw, int y_raw, int z_raw)
 {
-	// @Henk zijn dit de juiste values of moet je ongeintegreerd hebben?
-
-	float x_raw = x;
-	float y_raw = y;
-	float z_raw = z;
-
-
+	// Apply rotation (before scaling)
 	rotate_3f(_rotation, x, y, z);
 	{
-		// Apply rotation (before scaling)
 
 
 		float clipping_x = clip_count[0];
@@ -203,6 +189,7 @@ void PX4Accelerometer::Publish(const hrt_abstime &timestamp_sample, float x, flo
 		report.x = x * _scale;
 		report.y = y * _scale;
 		report.z = z * _scale;
+		report.scale = _scale;
 		report.x_raw = x_raw;
 		report.y_raw = y_raw;
 		report.z_raw = z_raw;

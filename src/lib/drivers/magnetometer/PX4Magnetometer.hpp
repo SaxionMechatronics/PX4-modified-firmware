@@ -60,19 +60,12 @@ public:
 	int get_instance() { return _sensor_pub.get_instance(); };
 
 private:
-<<<<<<< HEAD
 	uORB::PublicationMulti<sensor_mag_s> _sensor_pub{ORB_ID(sensor_mag)};
-=======
-<<<<<<< HEAD
-	uORB::PublicationQueuedMulti<sensor_mag_s> _sensor_pub;
-=======
-	uORB::PublicationMulti<sensor_mag_s> _sensor_mag_pub;
-	uORB::PublicationMulti<sensor_mag_full_s> _sensor_mag_full_pub;
+	uORB::PublicationMulti<sensor_mag_full_s> _sensor_full_pub{ORB_ID(sensor_mag_full)};
 
 	matrix::Vector3f _calibration_scale{1.f, 1.f, 1.f};
 	matrix::Vector3f _calibration_offset{0.f, 0.f, 0.f};
->>>>>>> Added expanded topics
->>>>>>> Added expanded topics
+	matrix::SquareMatrix<float,3>  _D;
 
 	uint32_t		_device_id{0};
 	const enum Rotation	_rotation;
