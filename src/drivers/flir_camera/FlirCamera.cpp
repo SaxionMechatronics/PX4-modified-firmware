@@ -59,22 +59,25 @@
 #include <drivers/drv_hrt.h>
 #include <math.h>
 
+#define FLIR_CAM_RES_X 336
+#define FLIR_CAM_RES_Y 256
+
+#define FLIR_CAM_FoV_X  35	//degrees
+#define FLIR_CAM_FoV_Y  27	//degrees
+
+#define FLIR_CAM_CENTER_X				(FLIR_CAM_RES_X/2)			// the x-axis center pixel position
+#define FLIR_CAM_CENTER_Y				(FLIR_CAM_RES_Y/2)			// the y-axis center pixel position
+
+#define FLIR_CAM_TAN_HALF_FOV_X 0.3152988999f // tan(0.5 * 35 * pi/180)
+#define FLIR_CAM_TAN_HALF_FOV_Y 0.2400787590f // tan(0.5 * 27 * pi/180)
+
+#define FLIR_CAM_TAN_ANG_PER_PIXEL_X	(2*FLIR_CAM_TAN_HALF_FOV_X/FLIR_CAM_RES_X)
+#define FLIR_CAM_TAN_ANG_PER_PIXEL_Y	(2*FLIR_CAM_TAN_HALF_FOV_Y/FLIR_CAM_RES_Y)
+
+
 // The FlirCamera has a serial communication timeout of 10ms.
 // Add a little extra to account for timing inaccuracy
 #define TIMEOUT_US 10500
-
-// If a timeout occurs during serial communication, it will immediately try again this many times
-#define TIMEOUT_RETRIES 1
-
-// If a timeout occurs while disarmed, it will try again this many times. This should be a higher number,
-// because stopping when disarmed is pretty important.
-#define STOP_RETRIES 10
-
-// Number of bytes returned by the Roboclaw when sending command 78, read both encoders
-#define ENCODER_MESSAGE_SIZE 10
-
-// Number of bytes for commands 18 and 19, read speeds.
-#define ENCODER_SPEED_MESSAGE_SIZE 7
 
 bool FlirCamera::taskShouldExit = false;
 
@@ -86,52 +89,52 @@ FlirCamera::FlirCamera(const char *deviceName, const char *baudRateParam):
 	_irlock_report_topic{ORB_ID(irlock_report)}
 
 {
-	// _param_handles.serial_baud_rate = 			param_find(baudRateParam);
-	// _parameters_update();
-	//
-	//
-	// 	const char *uart_name = "/dev/ttyS3";
-	// 	PX4_INFO("opening port %s", uart_name);
-	//
-	//
-	// 	_uart = open(uart_name,  O_RDWR | O_NOCTTY | O_NDELAY);
-	// 	// unsigned speed = B115200;
-	//
-	// 	if (_uart < 0) {
-	// 		err(1, "failed to open port: %s", uart_name);
-	// 	}
-	//
-	// 	/* Try to set baud rate */
-	// 	struct termios uart_config;
-	// 	int termios_state;
-	//
-	// 	/* Back up the original uart configuration to restore it after exit */
-	// 	if ((termios_state = tcgetattr(_uart, &uart_config)) < 0) {
-	// 		PX4_INFO("ERR GET CONF %s: %d\n", uart_name, termios_state);
-	// 		close(_uart);
-	// 		// return -1;
-	// 	}
-	//
-	// 	/* Clear ONLCR flag (which appends a CR for every LF) */
-	// 	uart_config.c_oflag =  CS8 | CLOCAL | CREAD;
-	// 	uart_config.c_iflag = IGNCR;    //ignore CR, other options off
-	// 	uart_config.c_iflag |= IGNBRK;  //ignore break condition
-	//
-	// 	uart_config.c_oflag = 0;        //all options off
-	// 	uart_config.c_lflag = ICANON;     //process input as lines
-	//
-	// 	if (cfsetispeed(&uart_config, B115200) < 0 || cfsetospeed(&uart_config, B115200) < 0) {
-	// 		PX4_INFO("ERR SET BAUD %s: %d\n", uart_name, termios_state);
-	// 		close(_uart);
-	// 		// return -1;
-	// 	}
-	//
-	//
-	// 	if ((termios_state = tcsetattr(_uart, TCSANOW, &uart_config)) < 0) {
-	// 		PX4_INFO("ERR SET CONF %s\n", uart_name);
-	// 		close(_uart);
-	// 		// return -1;
-	// 	}
+	_param_handles.serial_baud_rate = 			param_find(baudRateParam);
+	_parameters_update();
+
+
+		const char *uart_name = "/dev/ttyS3";
+		PX4_INFO("opening port %s", uart_name);
+
+
+		_uart = open(uart_name,  O_RDWR | O_NOCTTY | O_NDELAY);
+		// unsigned speed = B115200;
+
+		if (_uart < 0) {
+			err(1, "failed to open port: %s", uart_name);
+		}
+
+		/* Try to set baud rate */
+		struct termios uart_config;
+		int termios_state;
+
+		/* Back up the original uart configuration to restore it after exit */
+		if ((termios_state = tcgetattr(_uart, &uart_config)) < 0) {
+			PX4_INFO("ERR GET CONF %s: %d\n", uart_name, termios_state);
+			close(_uart);
+			// return -1;
+		}
+
+		/* Clear ONLCR flag (which appends a CR for every LF) */
+		uart_config.c_oflag =  CS8 | CLOCAL | CREAD;
+		uart_config.c_iflag = IGNCR;    //ignore CR, other options off
+		uart_config.c_iflag |= IGNBRK;  //ignore break condition
+
+		uart_config.c_oflag = 0;        //all options off
+		uart_config.c_lflag = ICANON;     //process input as lines
+
+		if (cfsetispeed(&uart_config, B115200) < 0 || cfsetospeed(&uart_config, B115200) < 0) {
+			PX4_INFO("ERR SET BAUD %s: %d\n", uart_name, termios_state);
+			close(_uart);
+			// return -1;
+		}
+
+
+		if ((termios_state = tcsetattr(_uart, TCSANOW, &uart_config)) < 0) {
+			PX4_INFO("ERR SET CONF %s\n", uart_name);
+			close(_uart);
+			// return -1;
+		}
 
 }
 
@@ -147,63 +150,52 @@ void set_uart_params(){
 void FlirCamera::taskMain()
 {
 	// thread_running = true;
-  // char buffer[200];
+  	char buffer[200];
 	// PX4_INFO("Flir camera thread starting...");
 	while(!taskShouldExit){
-	// 	int n = read(_uart, buffer, sizeof buffer);
-	// 	if (n > 0) {
-	// 			if(buffer[0] == 36){
-	// 				int seperator_loc = 0;
-	// 				int end_disriptor_loc = 0;
-	// 				for(int i = 0; i < (int)sizeof(buffer);i++){
-	// 					//59 = ; which is the seperator sign
-	// 					if(buffer[i] == 59){
-	// 						seperator_loc = i;
-	// 					}
-	//
-	// 					//42 is * which is the end discriptor of the message
-	// 					if(buffer[i] == 42){
-	// 						end_disriptor_loc = i;
-	// 					}
-	// 				}
-	// 				if(seperator_loc != 0 && end_disriptor_loc != 0){
-	//
-	// 					int x_loc = 0;
-	// 					int y_loc = 0;
-	//
-	// 					if(sscanf(buffer, "$%d;%d*", &x_loc, &y_loc) == 2){
-	// 						thermal_cam_s therm_cam_msg;
-	// 						therm_cam_msg.x = x_loc;
-	// 						therm_cam_msg.y = y_loc;
-	//
-	// 						_thermal_cam_pub.publish(therm_cam_msg);
-	//
-	// 						//
-	// 						// irlock_report_s orb_report{};
-	// 						// // orb_report.timestamp = report.timestamp;
-	// 						// // orb_report.signature = report.targets[0].signature;
-	// 						// orb_report.pos_x     = x_loc;
-	// 						// orb_report.pos_y     = y_loc;
-	// 						// // orb_report.size_x    = report.targets[0].size_x;
-	// 						// // orb_report.size_y    = report.targets[0].size_y;
-	// 						//
-	// 						// _irlock_report_topic.publish(orb_report);
-	//
-	// 					}
-	// 				}
-	// 			}
-	// 		}
+		int n = read(_uart, buffer, sizeof buffer);
+		if (n > 0) {
+				if(buffer[0] == 36){
+					int seperator_loc = 0;
+					int end_disriptor_loc = 0;
+					for(int i = 0; i < (int)sizeof(buffer);i++){
+						//59 = ; which is the seperator sign
+						if(buffer[i] == 59){
+							seperator_loc = i;
+						}
+
+						//42 is * which is the end discriptor of the message
+						if(buffer[i] == 42){
+							end_disriptor_loc = i;
+						}
+					}
+					if(seperator_loc != 0 && end_disriptor_loc != 0){
+
+						int x_loc = 0;
+						int y_loc = 0;
+
+						if(sscanf(buffer, "$%d;%d*", &x_loc, &y_loc) == 2){
+							thermal_cam_s therm_cam_msg;
+							therm_cam_msg.x = x_loc;
+							therm_cam_msg.y = y_loc;
+
+							_thermal_cam_pub.publish(therm_cam_msg);
 
 
-			irlock_report_s orb_report{};
-			orb_report.timestamp =  hrt_absolute_time();
-			// orb_report.signature = report.targets[0].signature;
-			orb_report.pos_x     = 20;
-			orb_report.pos_y     = 0;
-			orb_report.size_x    = 0;
-			orb_report.size_y    = 0;
+							irlock_report_s orb_report{};
+							orb_report.timestamp = hrt_absolute_time();
+							orb_report.signature = 2;
+							orb_report.pos_x     = (x_loc - FLIR_CAM_CENTER_X) * FLIR_CAM_TAN_ANG_PER_PIXEL_X;
+							orb_report.pos_y     = (y_loc - FLIR_CAM_CENTER_Y) * FLIR_CAM_TAN_ANG_PER_PIXEL_Y;
+							orb_report.size_x    = 0;
+							orb_report.size_y    = 0;
 
-			_irlock_report_topic.publish(orb_report);
+							_irlock_report_topic.publish(orb_report);
+
+						}
+					}
+				}
+			}
 
 			px4_usleep(TIMEOUT_US);
 		}
