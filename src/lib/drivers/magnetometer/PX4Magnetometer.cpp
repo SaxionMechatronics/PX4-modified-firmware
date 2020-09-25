@@ -132,12 +132,12 @@ void PX4Magnetometer::update(const hrt_abstime &timestamp_sample, float x, float
 	}
 }
 
-void PX4Magnetometer::print_status()
-{
-	PX4_INFO(MAG_BASE_DEVICE_PATH " device instance: %d", _class_device_instance);
+// void PX4Magnetometer::print_status()
+// {
+// 	PX4_INFO(MAG_BASE_DEVICE_PATH " device instance: %d", _class_device_instance);
 
-	PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
-		 (double)_calibration_scale(2));
-	PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),
-		 (double)_calibration_offset(2));
-}
+// 	PX4_INFO("calibration scale: %.5f %.5f %.5f", (double)_calibration_scale(0), (double)_calibration_scale(1),
+// 		 (double)_calibration_scale(2));
+// 	PX4_INFO("calibration offset: %.5f %.5f %.5f", (double)_calibration_offset(0), (double)_calibration_offset(1),
+// 		 (double)_calibration_offset(2));
+// }
