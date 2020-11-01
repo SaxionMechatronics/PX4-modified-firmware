@@ -61,6 +61,7 @@
 #include <uORB/topics/differential_pressure.h>
 #include <uORB/topics/distance_sensor.h>
 #include <uORB/topics/ekf2_timestamps.h>
+#include <uORB/topics/thermal_cam.h>
 #include <uORB/topics/irlock_report.h>
 #include <uORB/topics/manual_control_setpoint.h>
 #include <uORB/topics/optical_flow.h>
@@ -168,6 +169,7 @@ private:
 	uORB::Publication<differential_pressure_s>	_differential_pressure_pub{ORB_ID(differential_pressure)};
 	uORB::PublicationMulti<optical_flow_s>		_flow_pub{ORB_ID(optical_flow)};
 	uORB::Publication<irlock_report_s>		_irlock_report_pub{ORB_ID(irlock_report)};
+	uORB::Publication<thermal_cam_s>		_thermal_cam_pub{ORB_ID(thermal_cam)};
 	uORB::Publication<vehicle_odometry_s>		_visual_odometry_pub{ORB_ID(vehicle_visual_odometry)};
 	uORB::Publication<vehicle_odometry_s>		_mocap_odometry_pub{ORB_ID(vehicle_mocap_odometry)};
 
@@ -193,6 +195,7 @@ private:
 	void handle_message_hil_sensor(const mavlink_message_t *msg);
 	void handle_message_hil_state_quaternion(const mavlink_message_t *msg);
 	void handle_message_landing_target(const mavlink_message_t *msg);
+	void handle_message_flir_camera(const mavlink_message_t *msg);
 	void handle_message_odometry(const mavlink_message_t *msg);
 	void handle_message_optical_flow(const mavlink_message_t *msg);
 	void handle_message_rc_channels(const mavlink_message_t *msg);

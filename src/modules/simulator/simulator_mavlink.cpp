@@ -293,6 +293,10 @@ void Simulator::handle_message(const mavlink_message_t *msg)
 		handle_message_landing_target(msg);
 		break;
 
+	case MAVLINK_MSG_ID_FLIR_CAM:
+		handle_message_flir_camera(msg);
+		break;
+
 	case MAVLINK_MSG_ID_HIL_STATE_QUATERNION:
 		handle_message_hil_state_quaternion(msg);
 		break;
@@ -491,6 +495,23 @@ void Simulator::handle_message_landing_target(const mavlink_message_t *msg)
 	report.size_y = landing_target_mavlink.size_y;
 
 	_irlock_report_pub.publish(report);
+}
+
+void Simulator::handle_message_flir_camera(const mavlink_message_t *msg){
+
+	mavlink_flir_cam_t flir_cam;
+	mavlink_msg_flir_cam_decode(msg, &flir_cam);
+
+	thermal_cam_s report{};
+	report.timestamp = hrt_absolute_time();
+	report.signature = flir_cam.target_num;
+	report.pos_x = flir_cam.angle_x;
+	report.pos_y = flir_cam.angle_y;
+	report.size_x = flir_cam.size_x;
+	report.size_y = flir_cam.size_y;
+
+	_thermal_cam_pub.publish(report);
+
 }
 
 void Simulator::handle_message_odometry(const mavlink_message_t *msg)
