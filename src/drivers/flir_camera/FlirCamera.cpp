@@ -176,8 +176,8 @@ void FlirCamera::taskMain()
 
 						if(sscanf(buffer, "$%d;%d*", &x_loc, &y_loc) == 2){
 							thermal_cam_s therm_cam_msg;
-							therm_cam_msg.x = x_loc;
-							therm_cam_msg.y = y_loc;
+							therm_cam_msg.pos_x = x_loc;
+							therm_cam_msg.pos_y = y_loc;
 
 							_thermal_cam_pub.publish(therm_cam_msg);
 
