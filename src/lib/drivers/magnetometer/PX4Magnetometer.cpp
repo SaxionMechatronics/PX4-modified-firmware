@@ -42,11 +42,13 @@ PX4Magnetometer::PX4Magnetometer(uint32_t device_id, enum Rotation rotation) :
 {
 	// advertise immediately to keep instance numbering in sync
 	_sensor_pub.advertise();
+	_sensor_full_pub.advertise();
 }
 
 PX4Magnetometer::~PX4Magnetometer()
 {
 	_sensor_pub.unadvertise();
+	_sensor_full_pub.unadvertise();
 }
 
 void PX4Magnetometer::set_device_type(uint8_t devtype)
