@@ -5,6 +5,7 @@ px4_add_board(
 	MODEL f4sd
 	TOOLCHAIN arm-none-eabi
 	ARCHITECTURE cortex-m4
+	CONSTRAINED_MEMORY
 	ROMFSROOT px4fmu_common
 	CONSTRAINED_FLASH
 	SERIAL_PORTS
@@ -27,7 +28,6 @@ px4_add_board(
 		lights/rgbled
 		#magnetometer # all available magnetometer drivers
 		magnetometer/hmc5883
-		#mkblctrl
 		optical_flow/px4flow
 		osd
 		#pca9685
@@ -35,7 +35,6 @@ px4_add_board(
 		#pwm_out_sim
 		pwm_out
 		rc_input
-		#tap_esc
 		#telemetry # all available telemetry drivers
 		telemetry/frsky_telemetry
 		#test_ppm
@@ -93,10 +92,12 @@ px4_add_board(
 		top
 		#topic_listener
 		tune_control
+		uorb
 		usb_connected
 		ver
 		work_queue
 	EXAMPLES
+		#fake_gps
 		#fixedwing_control # Tutorial code from https://px4.io/dev/example_fixedwing_control
 		#hello
 		#hwtest # Hardware test

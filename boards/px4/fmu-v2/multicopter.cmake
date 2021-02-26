@@ -6,6 +6,7 @@ px4_add_board(
 	LABEL multicopter
 	TOOLCHAIN arm-none-eabi
 	ARCHITECTURE cortex-m4
+	CONSTRAINED_MEMORY
 	ROMFSROOT px4fmu_common
 	IO px4_io-v2_default
 	#UAVCAN_INTERFACES 2
@@ -25,7 +26,7 @@ px4_add_board(
 		gps
 		imu/l3gd20
 		imu/lsm303d
-		imu/mpu6000
+		imu/invensense/mpu6000
 		#imu/invensense/mpu9250
 		irlock
 		lights/rgbled
@@ -58,7 +59,7 @@ px4_add_board(
 		sensors
 		#sih
 		#temperature_compensation
-		vmount
+		#vmount
 	SYSTEMCMDS
 		#bl_update
 		#dumpfile
@@ -80,6 +81,7 @@ px4_add_board(
 		top
 		#topic_listener
 		tune_control
+		#uorb
 		#usb_connected
 		ver
 		#work_queue

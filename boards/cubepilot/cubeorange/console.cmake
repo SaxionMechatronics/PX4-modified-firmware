@@ -30,7 +30,7 @@ px4_add_board(
 		gps
 		#heater
 		#imu # all available imu drivers
-		imu/adis16448
+		imu/analog_devices/adis16448
 		imu/adis16477
 		imu/adis16497
 		imu/invensense/icm20602
@@ -41,7 +41,6 @@ px4_add_board(
 		lights/rgbled
 		lights/rgbled_ncp5623c
 		magnetometer # all available magnetometer drivers
-		mkblctrl
 		optical_flow # all available optical flow drivers
 		#osd
 		pca9685
@@ -52,7 +51,6 @@ px4_add_board(
 		px4io
 		roboclaw
 		rpm
-		tap_esc
 		telemetry # all available telemetry drivers
 		test_ppm
 		tone_alarm
@@ -114,10 +112,12 @@ px4_add_board(
 		top
 		topic_listener
 		tune_control
+		uorb
 		usb_connected
 		ver
 		work_queue
 	EXAMPLES
+		fake_gps
 		fake_magnetometer
 		fixedwing_control # Tutorial code from https://px4.io/dev/example_fixedwing_control
 		hello
